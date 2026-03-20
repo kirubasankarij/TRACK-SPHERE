@@ -350,7 +350,19 @@ const DriverPanel = () => {
                     <div className={`lg:col-span-1 space-y-4 ${activeShipment ? 'hidden lg:block' : 'block'}`}>
                         <div className="flex justify-between items-center mb-4 px-1">
                             <h3 className="text-xl font-bold">Today's Tasks</h3>
-                            <span className="bg-white/10 px-3 py-1 rounded-full text-[10px] font-black uppercase">{shipments.length} Total</span>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={() => {
+                                        localStorage.removeItem('tracksphere_shipments');
+                                        window.location.reload();
+                                    }}
+                                    className="bg-red-500/20 hover:bg-red-500/30 text-red-500 px-3 py-1 rounded-full text-[9px] font-black uppercase transition-all ring-1 ring-red-500/30 tracking-widest"
+                                    title="Restarts demo state to 'Out for Delivery'"
+                                >
+                                    ↻ Reset Demo
+                                </button>
+                                <span className="bg-white/10 px-3 py-1 rounded-full text-[10px] font-black uppercase">{shipments.length} Total</span>
+                            </div>
                         </div>
                         {loading ? (
                             <div className="space-y-4">{[1, 2, 3].map(i => <div key={i} className="h-32 glass-card animate-pulse bg-white/5"></div>)}</div>

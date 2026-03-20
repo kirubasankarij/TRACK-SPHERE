@@ -5,6 +5,7 @@ import DriverStats from '../components/driver/DriverStats';
 import FuelTracker from '../components/driver/FuelTracker';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-hot-toast';
+import VoiceSOSControls from '../components/driver/VoiceSOSControls';
 
 /* ───── Mock AI Engine (Client-side representation of server AI service) ───── */
 const AIEngine = {
@@ -184,18 +185,22 @@ const DriverPanel = () => {
     const handleStatusUpdate = async (shipment, nextStatus) => {
         if (!nextStatus) return;
         try {
-            await axios.post('/api/tracking/update', {
+            await axios.post('/tracking/update', {
                 trackingNumber: shipment.trackingNumber,
                 status: nextStatus,
                 location: 'Current Location',
                 trafficLevel: aiTraffic,
                 weatherCondition: aiWeather
-            }).catch(() => null);
+            });
             const updated = shipments.map(s => s._id === shipment._id ? { ...s, status: nextStatus } : s);
             setShipments(updated);
             setActiveShipment(prev => prev?._id === shipment._id ? { ...prev, status: nextStatus } : prev);
             localStorage.setItem('tracksphere_shipments', JSON.stringify(updated));
             toast.success(`Status updated to: ${nextStatus}`);
+            
+            if (nextStatus === 'out-for-delivery') {
+                toast.info('OTP Generated. Check server console for demo.');
+            }
         } catch (err) {
             toast.error('Failed to update status.');
         }
@@ -228,15 +233,25 @@ const DriverPanel = () => {
 
     /* OTP Verify */
     const handleVerifyOTP = async (trackingNumber) => {
-        if (otp !== '123456' && otp !== '654321') {
-            return toast.error('Invalid OTP. Demo: 123456');
+        if (!otp) return toast.error('Enter OTP');
+        
+        try {
+            const res = await axios.post('/tracking/verify-delivery', {
+                trackingNumber,
+                otp
+            });
+
+            if (res.data.success) {
+                const updated = shipments.map(s => s.trackingNumber === trackingNumber ? { ...s, status: 'delivered' } : s);
+                setShipments(updated);
+                setActiveShipment(prev => prev?.trackingNumber === trackingNumber ? { ...prev, status: 'delivered' } : prev);
+                localStorage.setItem('tracksphere_shipments', JSON.stringify(updated));
+                toast.success('✅ Delivery Verified! OTP accepted.');
+                setOtp('');
+            }
+        } catch (err) {
+            toast.error(err.response?.data?.msg || 'Invalid OTP verification failed');
         }
-        const updated = shipments.map(s => s.trackingNumber === trackingNumber ? { ...s, status: 'delivered' } : s);
-        setShipments(updated);
-        setActiveShipment(prev => prev?.trackingNumber === trackingNumber ? { ...prev, status: 'delivered' } : prev);
-        localStorage.setItem('tracksphere_shipments', JSON.stringify(updated));
-        toast.success('✅ Delivery Verified! OTP accepted.');
-        setOtp('');
     };
 
     /* Upload Proof */
@@ -264,20 +279,20 @@ const DriverPanel = () => {
         <div className="space-y-8 pb-20 max-w-7xl mx-auto px-4 md:px-0">
             <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div>
-                    <h1 className="text-3xl md:text-4xl font-black text-gray-900 tracking-tighter">
+                    <h1 className="text-3xl md:text-4xl font-black text-white tracking-tighter">
                         Terminal <span className="text-orange-600">Control</span>
                     </h1>
                     <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">
                         Operator: {user?.name || 'Master Driver'}
                     </p>
                 </div>
-                <nav className="flex p-1 bg-gray-100 rounded-2xl overflow-x-auto w-full md:w-auto scrollbar-hide">
+                <nav className="flex p-1 bg-white/10 rounded-2xl overflow-x-auto w-full md:w-auto scrollbar-hide">
                     {tabs.map(tab => (
                         <button
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
                             className={`px-4 md:px-5 py-2.5 md:py-3 rounded-xl text-xs md:text-sm font-black transition-all flex items-center gap-2 whitespace-nowrap ${activeTab === tab.id
-                                ? 'bg-white text-orange-600 shadow-sm ring-1 ring-black/5'
+                                ? 'bg-white/5 text-orange-600 shadow-sm ring-1 ring-black/5'
                                 : 'text-gray-400 hover:text-gray-600'
                             }`}
                         >
@@ -287,6 +302,9 @@ const DriverPanel = () => {
                     ))}
                 </nav>
             </header>
+
+            {/* Hands-free Floating Voice SOS Widget */}
+            <VoiceSOSControls driverId={user?.id || user?._id} />
 
             {activeTab === 'dashboard' && <DriverStats />}
             {activeTab === 'fuel' && <FuelTracker />}
@@ -299,7 +317,7 @@ const DriverPanel = () => {
                         <p className="text-gray-500 mb-8 text-xs md:text-sm">Your delivery roster is synced with the master dispatcher.</p>
                         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3 mb-8">
                             {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, i) => (
-                                <div key={day} className={`p-4 rounded-2xl border-2 text-center ${i < 5 ? 'border-orange-200 bg-orange-50' : 'border-gray-100 bg-gray-50'}`}>
+                                <div key={day} className={`p-4 rounded-2xl border-2 text-center ${i < 5 ? 'border-orange-200 bg-orange-50' : 'border-white/10 bg-white/5'}`}>
                                     <p className="text-[10px] font-black uppercase text-gray-400 mb-2">{day}</p>
                                     <p className={`font-black ${i < 5 ? 'text-orange-600' : 'text-gray-300'}`}>{i < 5 ? `${i + 2}-${i + 4}` : '–'}</p>
                                     <p className="text-[10px] text-gray-400 mt-1 font-bold">{i < 5 ? 'deliveries' : 'off'}</p>
@@ -307,12 +325,12 @@ const DriverPanel = () => {
                             ))}
                         </div>
                         <div className="space-y-3">
-                            <h4 className="text-lg font-black text-gray-700">Today's Assigned Deliveries</h4>
+                            <h4 className="text-lg font-black text-white">Today's Assigned Deliveries</h4>
                             {activeNonDelivered.map((s, i) => (
                                 <div key={i} className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 bg-orange-50 border border-orange-100 rounded-2xl transition-all hover:border-orange-200">
                                     <div className="w-10 h-10 bg-orange-600 text-white rounded-xl flex items-center justify-center font-black shrink-0">{i + 1}</div>
                                     <div className="flex-1 min-w-0">
-                                        <p className="font-black text-gray-800">{s.trackingNumber}</p>
+                                        <p className="font-black text-white">{s.trackingNumber}</p>
                                         <p className="text-xs text-gray-500 truncate">📍 {s.receiver?.address}</p>
                                     </div>
                                     <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase ${s.status === 'in-transit' ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'}`}>
@@ -332,10 +350,10 @@ const DriverPanel = () => {
                     <div className={`lg:col-span-1 space-y-4 ${activeShipment ? 'hidden lg:block' : 'block'}`}>
                         <div className="flex justify-between items-center mb-4 px-1">
                             <h3 className="text-xl font-bold">Today's Tasks</h3>
-                            <span className="bg-gray-100 px-3 py-1 rounded-full text-[10px] font-black uppercase">{shipments.length} Total</span>
+                            <span className="bg-white/10 px-3 py-1 rounded-full text-[10px] font-black uppercase">{shipments.length} Total</span>
                         </div>
                         {loading ? (
-                            <div className="space-y-4">{[1, 2, 3].map(i => <div key={i} className="h-32 glass-card animate-pulse bg-gray-50"></div>)}</div>
+                            <div className="space-y-4">{[1, 2, 3].map(i => <div key={i} className="h-32 glass-card animate-pulse bg-white/5"></div>)}</div>
                         ) : shipments.length === 0 ? (
                             <div className="glass-card text-center py-20">
                                 <p className="text-gray-400 italic">No assigned deliveries today.</p>
@@ -364,7 +382,7 @@ const DriverPanel = () => {
                                             {s.status}
                                         </span>
                                     </div>
-                                    <div className="pt-3 border-t border-gray-100 text-[11px] text-gray-500 font-medium">
+                                    <div className="pt-3 border-t border-white/10 text-[11px] text-gray-500 font-medium">
                                         <p className="line-clamp-1">📍 {s.receiver?.address || 'No address provided'}</p>
                                     </div>
                                 </button>
@@ -388,13 +406,13 @@ const DriverPanel = () => {
                                         <TrackingMap shipments={[activeShipment]} />
                                     </div>
                                     <div className="absolute bottom-4 left-4 right-4 md:bottom-6 md:left-6 md:right-6 pointer-events-none">
-                                        <div className="glass-card p-3 md:p-4 bg-white/95 backdrop-blur-md border-none shadow-xl pointer-events-auto flex items-center gap-3 md:gap-4">
+                                        <div className="glass-card p-3 md:p-4 bg-white/5/95 backdrop-blur-md border-none shadow-xl pointer-events-auto flex items-center gap-3 md:gap-4">
                                             <div className="w-8 h-8 md:w-10 md:h-10 bg-orange-600 rounded-xl flex items-center justify-center text-white text-sm">🗺️</div>
                                             <div className="flex-1">
                                                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Navigation</p>
                                                 <button
                                                     onClick={() => window.open(`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(activeShipment.receiver?.address || '')}`)}
-                                                    className="text-xs md:text-sm font-black text-gray-900 border-b-2 border-orange-200 hover:border-orange-500 transition-all text-left truncate"
+                                                    className="text-xs md:text-sm font-black text-white border-b-2 border-orange-200 hover:border-orange-500 transition-all text-left truncate"
                                                 >
                                                     Open in Google Maps →
                                                 </button>
@@ -438,7 +456,7 @@ const DriverPanel = () => {
                                                                 value={otp}
                                                                 onChange={e => setOtp(e.target.value)}
                                                                 placeholder="OTP"
-                                                                className="flex-1 min-w-[120px] px-4 py-3 rounded-xl border-none ring-1 ring-gray-200 focus:ring-2 focus:ring-orange-500 outline-none font-black tracking-[0.2em] text-center text-lg bg-white"
+                                                                className="flex-1 min-w-[120px] px-4 py-3 rounded-xl border-none ring-1 ring-gray-200 focus:ring-2 focus:ring-orange-500 outline-none font-black tracking-[0.2em] text-center text-lg bg-white/5"
                                                             />
                                                             <button
                                                                 onClick={() => handleVerifyOTP(activeShipment.trackingNumber)}
@@ -447,7 +465,7 @@ const DriverPanel = () => {
                                                                 Verify
                                                             </button>
                                                         </div>
-                                                        <p className="text-[9px] text-gray-400 mt-2 text-center font-bold">Demo OTP: 123456</p>
+                                                        <p className="text-[9px] text-gray-400 mt-2 text-center font-bold">Check server console for generated OTP</p>
                                                     </div>
                                                 )}
                                             </div>
@@ -458,11 +476,11 @@ const DriverPanel = () => {
                                                     <p className="font-black text-green-800 uppercase tracking-widest text-xs">Delivery Confirmed</p>
                                                 </div>
                                                 {/* Upload Proof */}
-                                                <div className="p-3 md:p-4 bg-gray-50 rounded-2xl border border-dashed border-gray-300">
+                                                <div className="p-3 md:p-4 bg-white/5 rounded-2xl border border-dashed border-gray-300">
                                                     <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-3">Proof of Delivery</p>
                                                     <div className="flex flex-col sm:flex-row gap-3 items-center">
                                                         <input type="file" id="proof" className="hidden" onChange={e => setProofFile(e.target.files[0])} />
-                                                        <label htmlFor="proof" className="w-full flex-1 p-3 bg-white border-2 border-gray-100 rounded-xl text-[10px] font-bold text-gray-500 cursor-pointer hover:bg-gray-100 transition-all overflow-hidden flex items-center gap-2">
+                                                        <label htmlFor="proof" className="w-full flex-1 p-3 bg-white/5 border-2 border-white/10 rounded-xl text-[10px] font-bold text-gray-500 cursor-pointer hover:bg-white/10 transition-all overflow-hidden flex items-center gap-2">
                                                             <span>📁</span>
                                                             <span className="truncate">{proofFile ? proofFile.name : 'Select File'}</span>
                                                         </label>
@@ -475,22 +493,22 @@ const DriverPanel = () => {
                                         )}
 
                                         {/* Shipment Details */}
-                                        <div className="pt-4 border-t border-gray-100 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                                            <div className="bg-gray-50 p-3 rounded-xl">
+                                        <div className="pt-4 border-t border-white/10 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                                            <div className="bg-white/5 p-3 rounded-xl">
                                                 <p className="text-[9px] font-black text-gray-400 uppercase">From</p>
-                                                <p className="font-bold text-gray-700 truncate">{activeShipment.sender?.name || '—'}</p>
+                                                <p className="font-bold text-white truncate">{activeShipment.sender?.name || '—'}</p>
                                                 <p className="text-[10px] text-gray-500 truncate">{activeShipment.sender?.address || '—'}</p>
                                             </div>
-                                            <div className="bg-gray-50 p-3 rounded-xl">
+                                            <div className="bg-white/5 p-3 rounded-xl">
                                                 <p className="text-[9px] font-black text-gray-400 uppercase">To</p>
-                                                <p className="font-bold text-gray-700 truncate">{activeShipment.receiver?.name || '—'}</p>
+                                                <p className="font-bold text-white truncate">{activeShipment.receiver?.name || '—'}</p>
                                                 <p className="text-[10px] text-gray-500 truncate">{activeShipment.receiver?.address || '—'}</p>
                                             </div>
                                         </div>
                                     </div>
 
                                     {/* Inline AI Panel for active shipment */}
-                                    <div className="glass-card bg-white text-gray-900 relative overflow-hidden border-2 border-gray-100 shadow-xl p-5 md:p-6">
+                                    <div className="glass-card bg-white/5 text-white relative overflow-hidden border-2 border-white/10 shadow-xl p-5 md:p-6">
                                         <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/5 rounded-full -mr-16 -mt-16 blur-3xl"></div>
                                         <h3 className="text-lg md:text-xl font-black mb-1">🤖 AI Insight</h3>
                                         <p className="text-[10px] font-bold mb-4 tracking-widest uppercase text-gray-400">Predictive Logistics</p>
@@ -501,7 +519,7 @@ const DriverPanel = () => {
                                                     {activeShipment.aiAnalysis.insight && <p className="text-[11px] text-gray-600 mt-2 font-medium">💡 {activeShipment.aiAnalysis.insight}</p>}
                                                 </div>
                                             ) : (
-                                                <div className="p-4 bg-gray-50 rounded-2xl">
+                                                <div className="p-4 bg-white/5 rounded-2xl">
                                                     <p className="text-xs text-gray-600">AI monitoring active – all clear.</p>
                                                 </div>
                                             )}
@@ -510,11 +528,11 @@ const DriverPanel = () => {
                                                     <span>Delay Probability</span>
                                                     <span className={activeShipment.delayProbability > 60 ? 'text-red-500' : 'text-green-500'}>{activeShipment.delayProbability || 0}%</span>
                                                 </div>
-                                                <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
+                                                <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
                                                     <div className={`h-full rounded-full ${activeShipment.delayProbability > 60 ? 'bg-red-500' : 'bg-orange-500'}`} style={{ width: `${activeShipment.delayProbability || 0}%` }}></div>
                                                 </div>
                                             </div>
-                                            <div className="bg-gray-50 p-3 rounded-xl flex justify-between items-center">
+                                            <div className="bg-white/5 p-3 rounded-xl flex justify-between items-center">
                                                 <span className="text-[10px] font-black text-gray-400 uppercase">Est. Delay</span>
                                                 <span className="font-black text-base text-orange-600">+{activeShipment.predictedDelay || 0} min</span>
                                             </div>
@@ -524,7 +542,7 @@ const DriverPanel = () => {
                             </>
                         ) : (
                             <div className="glass-card h-full flex flex-col items-center justify-center text-gray-400 py-32 space-y-6">
-                                <div className="w-20 h-20 md:w-24 md:h-24 bg-gray-50 rounded-full flex items-center justify-center text-3xl md:text-4xl border border-dashed border-gray-200">📍</div>
+                                <div className="w-20 h-20 md:w-24 md:h-24 bg-white/5 rounded-full flex items-center justify-center text-3xl md:text-4xl border border-dashed border-white/20">📍</div>
                                 <div className="text-center px-4">
                                     <h4 className="font-black text-gray-600 uppercase tracking-widest text-sm mb-2">No Active Selection</h4>
                                     <p className="text-xs font-medium max-w-[250px] mx-auto">Select a task from the list to begin terminal navigation.</p>
@@ -549,7 +567,7 @@ const DriverPanel = () => {
                             <span className="text-2xl md:text-3xl">📱</span>
                             <div className="flex-1">
                                 <p className="font-black text-red-800 mb-1 text-sm md:text-base">Auto Delay Notification Triggered</p>
-                                <p className="text-xs md:text-sm text-red-700 bg-white/60 p-3 rounded-xl border border-red-200 font-medium leading-relaxed">
+                                <p className="text-xs md:text-sm text-red-700 bg-white/5/60 p-3 rounded-xl border border-red-200 font-medium leading-relaxed">
                                     "{aiNotification.replace('Updated ETA will be recalculated', `Updated ETA: ${aiETA?.etaTime || '–'}`)}"
                                 </p>
                                 <p className="text-[9px] md:text-[10px] text-red-500 font-bold mt-2 uppercase tracking-widest">📧 Customer & Admin notified automatically</p>
@@ -568,7 +586,7 @@ const DriverPanel = () => {
                                         <button
                                             key={t}
                                             onClick={() => setAiTraffic(t)}
-                                            className={`py-2.5 md:py-3 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${aiTraffic === t ? 'bg-orange-600 text-white shadow-lg shadow-orange-500/30 scale-105' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
+                                            className={`py-2.5 md:py-3 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${aiTraffic === t ? 'bg-orange-600 text-white shadow-lg shadow-orange-500/30 scale-105' : 'bg-white/10 text-gray-500 hover:bg-gray-200'}`}
                                         >
                                             {t === 'light' ? '🟢' : t === 'moderate' ? '🟡' : t === 'heavy' ? '🔴' : '🚨'} {t}
                                         </button>
@@ -582,7 +600,7 @@ const DriverPanel = () => {
                                         <button
                                             key={w}
                                             onClick={() => setAiWeather(w)}
-                                            className={`py-2.5 md:py-3 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${aiWeather === w ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30 scale-105' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
+                                            className={`py-2.5 md:py-3 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${aiWeather === w ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30 scale-105' : 'bg-white/10 text-gray-500 hover:bg-gray-200'}`}
                                         >
                                             {w === 'clear' ? '☀️' : w === 'rain' ? '🌧️' : w === 'storm' ? '⛈️' : '❄️'} {w}
                                         </button>
@@ -597,13 +615,13 @@ const DriverPanel = () => {
                         {/* Delay Prediction */}
                         <div className="glass-card bg-gradient-to-br from-red-50 to-white border-l-4 border-red-400 p-6 md:p-8">
                             <p className="text-[10px] font-black uppercase tracking-widest text-red-400 mb-2">⚠️ Delay Prediction</p>
-                            <h3 className="text-3xl md:text-4xl font-black text-gray-900">+{aiPrediction?.predictedDelay || 0}<span className="text-xl text-gray-400 ml-1">min</span></h3>
+                            <h3 className="text-3xl md:text-4xl font-black text-white">+{aiPrediction?.predictedDelay || 0}<span className="text-xl text-gray-400 ml-1">min</span></h3>
                             <div className="mt-4 space-y-2">
                                 <div className="flex justify-between text-[10px] font-bold">
                                     <span className="text-gray-500">Probability</span>
                                     <span className={aiPrediction?.delayProbability > 60 ? 'text-red-600' : 'text-green-600'}>{aiPrediction?.delayProbability || 0}%</span>
                                 </div>
-                                <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                                <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
                                     <div className="h-full bg-red-500 rounded-full transition-all duration-700" style={{ width: `${aiPrediction?.delayProbability || 0}%` }}></div>
                                 </div>
                             </div>
@@ -614,7 +632,7 @@ const DriverPanel = () => {
                         {/* Smart ETA */}
                         <div className="glass-card bg-gradient-to-br from-blue-50 to-white border-l-4 border-blue-400 p-6 md:p-8">
                             <p className="text-[10px] font-black uppercase tracking-widest text-blue-400 mb-2">🕐 Smart ETA</p>
-                            <h3 className="text-3xl md:text-4xl font-black text-gray-900">{aiETA?.etaTime || '—'}</h3>
+                            <h3 className="text-3xl md:text-4xl font-black text-white">{aiETA?.etaTime || '—'}</h3>
                             <p className="text-xs md:text-sm text-blue-600 font-bold mt-2">~{aiETA?.totalMinutes || 0} minutes from now</p>
                             <div className="mt-4 bg-blue-50/50 p-3 rounded-xl">
                                 <p className="text-[10px] font-black text-blue-700 uppercase tracking-tighter">Factors applied:</p>
@@ -629,7 +647,7 @@ const DriverPanel = () => {
                         {/* Route Optimization */}
                         <div className="glass-card bg-gradient-to-br from-green-50 to-white border-l-4 border-green-400 p-6 md:p-8 sm:col-span-2 lg:col-span-1">
                             <p className="text-[10px] font-black uppercase tracking-widest text-green-400 mb-2">🗺️ Route Optimization</p>
-                            <h3 className="text-3xl md:text-4xl font-black text-gray-900">-{aiRoute?.saving || 0}<span className="text-xl text-gray-400 ml-1">min</span></h3>
+                            <h3 className="text-3xl md:text-4xl font-black text-white">-{aiRoute?.saving || 0}<span className="text-xl text-gray-400 ml-1">min</span></h3>
                             <p className="text-[11px] md:text-sm text-green-600 font-bold mt-2">Faster route found!</p>
                             <div className="mt-4 bg-green-50/50 p-3 rounded-xl">
                                 <p className="text-[10px] font-black text-green-700 mb-1 uppercase tracking-tighter">Optimized Path:</p>
@@ -649,9 +667,9 @@ const DriverPanel = () => {
                                 { icon: '📍', title: 'Smart ETA', desc: 'ETA = BaseTime + TrafficAdd + WeatherPenalty. Updated every GPS tick in real-time.' },
                                 { icon: '🚨', title: 'Auto Notifications', desc: 'When delay probability exceeds thresholds, the system auto-notifies the customer and admin via SMS & Email.' },
                             ].map((item, i) => (
-                                <div key={i} className="p-4 md:p-5 bg-gray-50 rounded-2xl border border-gray-100/50">
+                                <div key={i} className="p-4 md:p-5 bg-white/5 rounded-2xl border border-white/10">
                                     <span className="text-2xl block mb-3">{item.icon}</span>
-                                    <p className="font-black text-sm text-gray-800 mb-2">{item.title}</p>
+                                    <p className="font-black text-sm text-white mb-2">{item.title}</p>
                                     <p className="text-[11px] text-gray-500 leading-relaxed font-medium">{item.desc}</p>
                                 </div>
                             ))}
@@ -676,7 +694,7 @@ const DriverPanel = () => {
                                         <button
                                             key={reason}
                                             onClick={() => setDelayReason(reason)}
-                                            className={`p-3 md:p-4 rounded-2xl border-2 text-[10px] md:text-xs font-black transition-all ${delayReason === reason ? 'border-red-600 bg-red-50 text-red-700 shadow-lg' : 'border-gray-50 hover:border-red-200 bg-gray-50/50'}`}
+                                            className={`p-3 md:p-4 rounded-2xl border-2 text-[10px] md:text-xs font-black transition-all ${delayReason === reason ? 'border-red-600 bg-red-50 text-red-700 shadow-lg' : 'border-gray-50 hover:border-red-200 bg-white/5'}`}
                                         >
                                             {reason}
                                         </button>
@@ -685,7 +703,7 @@ const DriverPanel = () => {
                             </div>
                             <div>
                                 <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Estimated Delay (Minutes)</label>
-                                <div className="flex items-center gap-4 bg-gray-50 p-4 rounded-2xl">
+                                <div className="flex items-center gap-4 bg-white/5 p-4 rounded-2xl">
                                     <input
                                         type="range" min="5" max="120" step="5"
                                         className="flex-grow h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-red-600"
@@ -699,13 +717,13 @@ const DriverPanel = () => {
                             {/* Notification Preview */}
                             <div className="p-4 bg-red-50 rounded-2xl border border-red-100">
                                 <p className="text-[9px] font-black text-red-600 uppercase tracking-widest mb-2">📱 Notification Preview</p>
-                                <p className="text-[11px] text-gray-700 italic leading-relaxed">
+                                <p className="text-[11px] text-white italic leading-relaxed">
                                     "Your shipment <strong>{activeShipment?.trackingNumber}</strong> is delayed due to <strong>{delayReason || '[reason]'}</strong>. Updated ETA: <strong>{aiETA?.etaTime || '—'}</strong>."
                                 </p>
                             </div>
 
                             <div className="flex flex-col sm:flex-row gap-3">
-                                <button onClick={() => setShowDelayModal(false)} className="order-2 sm:order-1 flex-1 py-4 px-6 rounded-2xl bg-gray-100 text-gray-400 font-black uppercase tracking-widest text-[10px] hover:bg-gray-200 transition-all">
+                                <button onClick={() => setShowDelayModal(false)} className="order-2 sm:order-1 flex-1 py-4 px-6 rounded-2xl bg-white/10 text-gray-400 font-black uppercase tracking-widest text-[10px] hover:bg-gray-200 transition-all">
                                     Discard
                                 </button>
                                 <button onClick={handleReportDelay} className="order-1 sm:order-2 flex-1 py-4 px-6 rounded-2xl bg-red-600 text-white font-black uppercase tracking-widest text-[10px] shadow-xl shadow-red-500/20 hover:bg-red-700 transition-all">

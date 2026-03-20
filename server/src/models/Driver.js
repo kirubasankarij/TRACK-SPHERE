@@ -4,6 +4,7 @@ const driverSchema = new mongoose.Schema({
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     licenseNumber: { type: String, required: true, unique: true },
     vehicle: { type: mongoose.Schema.Types.ObjectId, ref: 'Vehicle' },
+    avatar: { type: String }, // URL to driver image
     status: { type: String, enum: ['available', 'on-trip', 'offline'], default: 'offline' },
     rating: { type: Number, default: 5 },
     points: { type: Number, default: 0 },

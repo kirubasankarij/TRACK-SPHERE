@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import Navbar from './components/common/Navbar'
 import Footer from './components/common/Footer'
@@ -15,16 +15,47 @@ import DriverLogin from './pages/DriverLogin'
 import Support from './pages/Support'
 import CreateShipment from './pages/CreateShipment'
 import ShipmentHistory from './pages/ShipmentHistory'
-import { AuthProvider } from './context/AuthContext'
+import { AuthProvider, useAuth } from './context/AuthContext'
 import ErrorBoundary from './components/common/ErrorBoundary'
 import SupportChatbot from './components/common/SupportChatbot'
+import { io as socketIO } from 'socket.io-client'
+import { toast, Toaster } from 'react-hot-toast'
+
+const SocketHandler = () => {
+    const { user } = useAuth();
+
+    useEffect(() => {
+        if (!user) return;
+
+        const socket = socketIO(import.meta.env.VITE_API_URL || 'http://localhost:5000');
+        
+        socket.on('connect', () => {
+            console.log('Connected to socket network');
+        });
+
+        socket.on('newNotification', (notif) => {
+            // Check if notification is for this user or if user is admin
+            if (user.role === 'admin' && notif.role === 'admin') {
+                toast.error(`🚨 ADMIN: ${notif.message}`, { duration: 6000, position: 'top-right' });
+            } else if (user.id === notif.userId || user.email === notif.userId) {
+                toast.error(`⚠️ ${notif.message}`, { duration: 6000, position: 'top-center' });
+            }
+        });
+
+        return () => socket.disconnect();
+    }, [user]);
+
+    return null;
+};
 
 function App() {
     return (
         <ErrorBoundary>
             <AuthProvider>
+                <SocketHandler />
+                <Toaster />
                 <Router>
-                    <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
+                    <div className="min-h-screen bg-ai-bg flex flex-col font-sans text-text-main">
                         <Navbar />
                         <main className="flex-grow container mx-auto px-4 py-8">
                             <Routes>

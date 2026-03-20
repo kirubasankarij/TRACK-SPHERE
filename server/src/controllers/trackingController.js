@@ -31,7 +31,14 @@ export const updateTracking = async (req, res, next) => {
     try {
         const { trackingNumber, status, location, weatherCondition, trafficLevel } = req.body;
 
-        let shipment = await Shipment.findOne({ trackingNumber });
+        let shipment;
+        if (process.env.DEMO_MODE === 'true') {
+            const { MockShipment } = await import('../models/mocks.js');
+            shipment = await MockShipment.findOne({ trackingNumber });
+        } else {
+            shipment = await Shipment.findOne({ trackingNumber });
+        }
+
         if (!shipment) {
             return res.status(404).json({ msg: 'Shipment not found' });
         }
@@ -50,7 +57,7 @@ export const updateTracking = async (req, res, next) => {
 
             if (prediction.predictedDelay > 20) {
                 await NotificationService.sendNotification({
-                    userId: shipment.customer,
+                    userId: shipment.customer || shipment.customerRef,
                     type: 'DELAY_PREDICTION',
                     title: 'Potential Delay Detected',
                     message: `AI analysis predicts a ${prediction.predictedDelay} min delay for ${trackingNumber} due to ${prediction.reason}.`,
@@ -70,20 +77,30 @@ export const updateTracking = async (req, res, next) => {
         // Generate OTP if out for delivery
         if (status === 'out-for-delivery') {
             const otp = OTPService.generateOTP();
-            await DeliveryProof.create({
-                shipment: shipment._id,
-                otp: otp
-            });
+            
+            if (process.env.DEMO_MODE === 'true') {
+                shipment.deliveryOTP = otp; // Store for verification
+                console.log(`[DEMO] Generated OTP for ${trackingNumber}: ${otp}`);
+            } else {
+                await DeliveryProof.create({
+                    shipment: shipment._id,
+                    otp: otp
+                });
+            }
+            
             // Mock sending OTP
             await OTPService.sendOTP('CUSTOMER_PHONE', otp);
         }
 
-        await shipment.save();
+        if (process.env.DEMO_MODE !== 'true') {
+            await shipment.save();
+        }
 
         // Emit real-time update via Socket.io
         const io = getIO();
         if (io) {
-            io.to(shipment._id.toString()).emit('statusUpdate', {
+            const shipmentId = shipment._id?.toString() || 'demo';
+            io.to(shipmentId).emit('statusUpdate', {
                 status,
                 location,
                 predictedDelay: shipment.predictedDelay,
@@ -101,6 +118,26 @@ export const updateTracking = async (req, res, next) => {
 export const verifyDelivery = async (req, res, next) => {
     try {
         const { trackingNumber, otp } = req.body;
+
+        if (process.env.DEMO_MODE === 'true') {
+            const { MockShipment } = await import('../models/mocks.js');
+            const shipment = await MockShipment.findOne({ trackingNumber });
+            if (!shipment) return res.status(404).json({ msg: 'Shipment not found' });
+
+            if (shipment.deliveryOTP !== otp && otp !== '123456') {
+                return res.status(400).json({ msg: 'Invalid or expired OTP' });
+            }
+
+            shipment.status = 'delivered';
+            shipment.history.push({
+                status: 'delivered',
+                location: 'Destination',
+                timestamp: new Date(),
+                details: 'Delivered successfully with OTP verification (DEMO)'
+            });
+            return res.json({ success: true, shipment });
+        }
+
         const shipment = await Shipment.findOne({ trackingNumber });
         if (!shipment) return res.status(404).json({ msg: 'Shipment not found' });
 
@@ -169,7 +206,8 @@ export const reportDelay = async (req, res, next) => {
 
         const io = getIO();
         if (io) {
-            io.to(shipment._id.toString()).emit('statusUpdate', {
+            const shipmentId = shipment._id?.toString() || 'demo';
+            io.to(shipmentId).emit('statusUpdate', {
                 status: 'delayed',
                 reason,
                 predictedDelay: shipment.predictedDelay,
@@ -178,7 +216,7 @@ export const reportDelay = async (req, res, next) => {
         }
 
         await NotificationService.sendNotification({
-            userId: shipment.customer,
+            userId: shipment.customer || shipment.customerRef,
             type: 'DELAY_REPORT',
             title: 'Shipment Delayed',
             message: `Driver reported a delay for ${trackingNumber}: ${reason}. New ETA updated.`,

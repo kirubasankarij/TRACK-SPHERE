@@ -44,7 +44,8 @@ export const MockUser = class extends MockModel {
     }
 
     static async findById(id) {
-        return this.users.find(u => u._id.toString() === id.toString()) || null;
+        if (!id) return null;
+        return this.users.find(u => u._id && u._id.toString() === id.toString()) || null;
     }
 };
 
@@ -96,8 +97,8 @@ export const MockShipment = class extends MockModel {
                 { status: 'in-transit', location: 'Erode', timestamp: new Date(), details: 'Approaching Coimbatore' }
             ],
             estimatedDelivery: new Date(Date.now() + 7200000),
-            delayProbability: 5,
-            predictedDelay: 0,
+            delayProbability: 35,
+            predictedDelay: 25,
             aiAnalysis: {
                 reason: 'Optimal route maintainted. Potential congestion avoided via Salem bypass.',
                 insight: 'Traffic is moving 12% faster than 2-hour average.',
@@ -111,7 +112,7 @@ export const MockShipment = class extends MockModel {
                 name: 'Raj Kumar', 
                 phone: '+91 98765 43210', 
                 rating: 4.9,
-                avatar: 'https://i.pravatar.cc/150?u=rajkumar'
+                avatar: null 
             },
             assignedVehicle: { 
                 plateNumber: 'TN-01-AX-1234', 
@@ -145,6 +146,7 @@ export const MockDriver = class extends MockModel {
             phone: '+91 98765 43210',
             licenseNumber: 'TN-38-2022-0012345',
             performanceStats: { totalDeliveries: 1542, rating: 4.9 },
+            avatar: null,
             status: 'active'
         }; 
     }

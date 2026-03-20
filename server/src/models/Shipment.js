@@ -48,6 +48,7 @@ const shipmentSchema = new mongoose.Schema({
         comment: String,
         submittedAt: Date,
     },
+    lastDelayNotifiedAt: { type: Date, default: null }, // prevents duplicate delay alerts
 }, { timestamps: true });
 
 export default mongoose.model('Shipment', shipmentSchema);

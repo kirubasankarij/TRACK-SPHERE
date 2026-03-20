@@ -17,17 +17,31 @@ const getTwilioClient = () => {
 };
 
 const getMailTransporter = () => {
-    if (!mailTransporter && process.env.SENDGRID_API_KEY) {
-        try {
-            mailTransporter = nodemailer.createTransport({
-                service: 'SendGrid',
-                auth: {
-                    user: 'apikey',
-                    pass: process.env.SENDGRID_API_KEY
-                }
-            });
-        } catch (err) {
-            console.error('Failed to initialize Mailer:', err.message);
+    if (!mailTransporter) {
+        if (process.env.SENDGRID_API_KEY) {
+            try {
+                mailTransporter = nodemailer.createTransport({
+                    service: 'SendGrid',
+                    auth: {
+                        user: 'apikey',
+                        pass: process.env.SENDGRID_API_KEY
+                    }
+                });
+            } catch (err) {
+                console.error('Failed to initialize SendGrid:', err.message);
+            }
+        } else if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+            try {
+                mailTransporter = nodemailer.createTransport({
+                    service: 'gmail',
+                    auth: {
+                        user: process.env.EMAIL_USER,
+                        pass: process.env.EMAIL_PASS
+                    }
+                });
+            } catch (err) {
+                console.error('Failed to initialize Gmail:', err.message);
+            }
         }
     }
     return mailTransporter;
@@ -51,6 +65,24 @@ export const sendSMS = async (to, body) => {
     }
 };
 
+export const sendVoiceCall = async (to, message) => {
+    try {
+        const client = getTwilioClient();
+        if (!client) {
+            console.log(`[DEMO] Voice Call would be made to ${to}: ${message}`);
+            return;
+        }
+        await client.calls.create({
+            twiml: `<Response><Say>${message}</Say></Response>`,
+            to,
+            from: process.env.TWILIO_PHONE
+        });
+        console.log(`Voice call initiated to ${to}`);
+    } catch (err) {
+        console.error('Twilio Voice Error:', err.message);
+    }
+};
+
 export const sendEmail = async (to, subject, text) => {
     try {
         const transporter = getMailTransporter();
@@ -59,7 +91,7 @@ export const sendEmail = async (to, subject, text) => {
             return;
         }
         await transporter.sendMail({
-            from: process.env.EMAIL_FROM,
+            from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
             to,
             subject,
             text
@@ -87,6 +119,11 @@ export const sendNotification = async ({ userId, type, title, message, metadata 
     try {
         console.log(`[DISPATCH] Sending ${type} to ${userId}: ${message}`);
         
+        if (!userId) {
+            console.warn(`[NOTIFICATION] Skipping notification dispatch: No userId provided.`);
+            return;
+        }
+
         let recipient;
         if (process.env.DEMO_MODE === 'true') {
             const { MockUser } = await import('../models/mocks.js');
@@ -117,8 +154,10 @@ export const sendNotification = async ({ userId, type, title, message, metadata 
         console.error('Notification Dispatch Error:', err.message);
     }
 };
+
 const NotificationService = {
     sendSMS,
+    sendVoiceCall,
     sendEmail,
     sendPushNotification,
     sendNotification

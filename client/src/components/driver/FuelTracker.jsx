@@ -38,7 +38,7 @@ const FuelTracker = () => {
                             <input 
                                 type="text" 
                                 required
-                                className="w-full bg-gray-50 border-none rounded-xl p-4 font-bold outline-none ring-offset-2 focus:ring-2 focus:ring-orange-500" 
+                                className="w-full bg-white/5 border-none rounded-xl p-4 font-bold outline-none ring-offset-2 focus:ring-2 focus:ring-orange-500" 
                                 placeholder="e.g. Shell Global"
                                 value={form.station}
                                 onChange={e => setForm({...form, station: e.target.value})}
@@ -50,7 +50,7 @@ const FuelTracker = () => {
                                 <input 
                                     type="number" 
                                     required
-                                    className="w-full bg-gray-50 border-none rounded-xl p-4 font-bold outline-none focus:ring-2 focus:ring-orange-500" 
+                                    className="w-full bg-white/5 border-none rounded-xl p-4 font-bold outline-none focus:ring-2 focus:ring-orange-500" 
                                     placeholder="45"
                                     value={form.amount}
                                     onChange={e => setForm({...form, amount: e.target.value})}
@@ -61,7 +61,7 @@ const FuelTracker = () => {
                                 <input 
                                     type="number" 
                                     required
-                                    className="w-full bg-gray-50 border-none rounded-xl p-4 font-bold outline-none focus:ring-2 focus:ring-orange-500" 
+                                    className="w-full bg-white/5 border-none rounded-xl p-4 font-bold outline-none focus:ring-2 focus:ring-orange-500" 
                                     placeholder="85.50"
                                     value={form.cost}
                                     onChange={e => setForm({...form, cost: e.target.value})}
@@ -73,7 +73,7 @@ const FuelTracker = () => {
                             <input 
                                 type="number" 
                                 required
-                                className="w-full bg-gray-50 border-none rounded-xl p-4 font-bold outline-none focus:ring-2 focus:ring-orange-500" 
+                                className="w-full bg-white/5 border-none rounded-xl p-4 font-bold outline-none focus:ring-2 focus:ring-orange-500" 
                                 placeholder="45200"
                                 value={form.mileage}
                                 onChange={e => setForm({...form, mileage: e.target.value})}
@@ -88,13 +88,13 @@ const FuelTracker = () => {
 
             <div className="lg:col-span-2">
                 <div className="glass-card overflow-hidden">
-                    <div className="p-8 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                    <div className="p-8 border-b border-white/10 flex justify-between items-center bg-white/5">
                         <h3 className="text-xl font-black">Expense Logs</h3>
                             <span className="text-green-600 bg-green-50 px-3 py-1 rounded-full border border-green-100">Avg Cost: ₹102/L</span>
                     </div>
                     <div className="overflow-x-auto">
                         <table className="w-full text-left">
-                            <thead className="bg-gray-50 text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                            <thead className="bg-white/5 text-[10px] font-black text-gray-400 uppercase tracking-widest">
                                 <tr>
                                     <th className="px-8 py-4">Date</th>
                                     <th className="px-8 py-4">Station</th>
@@ -105,12 +105,12 @@ const FuelTracker = () => {
                             </thead>
                             <tbody className="divide-y divide-gray-100">
                                 {logs.map(log => (
-                                    <tr key={log.id} className="hover:bg-gray-50 transition-colors">
+                                    <tr key={log.id} className="hover:bg-white/5 transition-colors">
                                         <td className="px-8 py-5 font-bold text-sm text-gray-500">{log.date}</td>
-                                        <td className="px-8 py-5 font-black text-gray-900">{log.station}</td>
+                                        <td className="px-8 py-5 font-black text-white">{log.station}</td>
                                         <td className="px-8 py-5 font-bold text-sm">{log.amount} L</td>
                                         <td className="px-8 py-5 font-mono text-xs text-blue-600">{log.mileage} km</td>
-                                        <td className="px-8 py-5 text-right font-black text-lg text-gray-900">₹{log.cost}</td>
+                                        <td className="px-8 py-5 text-right font-black text-lg text-white">₹{log.cost}</td>
                                     </tr>
                                 ))}
                             </tbody>

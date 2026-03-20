@@ -17,11 +17,17 @@ import customerRoutes from './routes/customerRoutes.js';
 import vehicleRoutes from './routes/vehicleRoutes.js';
 import stationRoutes from './routes/stationRoutes.js';
 import supportRoutes from './routes/supportRoutes.js';
+import notificationRoutes from './routes/notificationRoutes.js';
+import sosRoutes from './routes/sosRoutes.js';
+import { startDelayScheduler } from './services/delayScheduler.js';
 
 dotenv.config();
 
 // Connect to Database
 connectDB();
+
+// Start automatic delay notification scheduler
+startDelayScheduler();
 
 const app = express();
 const httpServer = createServer(app);
@@ -51,6 +57,8 @@ app.use('/api/customer', customerRoutes);
 app.use('/api/vehicles', vehicleRoutes);
 app.use('/api/stations', stationRoutes);
 app.use('/api/support', supportRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/sos', sosRoutes);
 
 app.get('/', (req, res) => {
     res.send('TrackFlow API is running...');

@@ -39,7 +39,7 @@ const DriverStats = ({ stats }) => {
                             <span>Delivery Efficiency</span>
                             <span className="text-blue-600">94%</span>
                         </div>
-                        <div className="h-3 w-full bg-gray-100 rounded-full overflow-hidden">
+                        <div className="h-3 w-full bg-white/10 rounded-full overflow-hidden">
                             <div className="h-full bg-blue-500 rounded-full" style={{ width: '94%' }}></div>
                         </div>
                     </div>
@@ -48,7 +48,7 @@ const DriverStats = ({ stats }) => {
                             <span>Customer Satisfaction</span>
                             <span className="text-orange-500">96%</span>
                         </div>
-                        <div className="h-3 w-full bg-gray-100 rounded-full overflow-hidden">
+                        <div className="h-3 w-full bg-white/10 rounded-full overflow-hidden">
                             <div className="h-full bg-orange-500 rounded-full" style={{ width: '96%' }}></div>
                         </div>
                     </div>

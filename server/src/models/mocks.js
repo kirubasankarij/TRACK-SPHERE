@@ -129,7 +129,52 @@ export const MockShipment = class extends MockModel {
             createdAt: new Date() 
         },
         { _id: new mongoose.Types.ObjectId(), trackingNumber: 'TF-DEMO-002', status: 'delivered', origin: 'Berlin', destination: 'Paris', createdAt: new Date() },
-        { _id: new mongoose.Types.ObjectId(), trackingNumber: 'TF-DEMO-003', status: 'pending', origin: 'Tokyo', destination: 'Osaka', createdAt: new Date() }
+        { _id: new mongoose.Types.ObjectId(), trackingNumber: 'TF-DEMO-003', status: 'pending', origin: 'Tokyo', destination: 'Osaka', createdAt: new Date() },
+        { 
+            _id: new mongoose.Types.ObjectId(), 
+            trackingNumber: 'TRK-DEMO-2002', 
+            status: 'out-for-delivery', 
+            origin: 'Mumbai', 
+            destination: 'Pune', 
+            sender: { name: 'Mumbai Logistics', address: 'Andheri East, Mumbai, MH' },
+            receiver: { name: 'Pune Distributors', address: 'Hinjewadi, Pune, MH' },
+            deliveryLocation: { lat: 18.5913, lng: 73.7389 },
+            routePoints: [
+                { lat: 19.0760, lng: 72.8777, timestamp: new Date(Date.now() - 28800000) },
+                { lat: 18.7167, lng: 73.3234, timestamp: new Date(Date.now() - 14400000) },
+                { lat: 18.5913, lng: 73.7389, timestamp: new Date() }
+            ],
+            history: [
+                { status: 'picked-up', location: 'Mumbai', timestamp: new Date(Date.now() - 28800000), details: 'Package picked up from warehouse' },
+                { status: 'in-transit', location: 'Lonavala', timestamp: new Date(Date.now() - 14400000), details: 'Crossed Lonavala checkpoint' },
+                { status: 'out-for-delivery', location: 'Pune', timestamp: new Date(), details: 'Out for delivery in Hinjewadi area' }
+            ],
+            estimatedDelivery: new Date(Date.now() + 3600000),
+            delayProbability: 10,
+            predictedDelay: 5,
+            aiAnalysis: {
+                reason: 'Express highway route selected. Low traffic expected.',
+                insight: 'Delivery on track — ETA within 1 hour.',
+                impact: 'minimal'
+            },
+            notifications: [
+                { type: 'SMS', recipient: '+91 9XXXX XX456', status: 'delivered', timestamp: new Date(Date.now() - 28800000), message: 'Shipment TRK-DEMO-2002 picked up from Mumbai.' },
+                { type: 'Email', recipient: 'p****@gmail.com', status: 'sent', timestamp: new Date(), message: 'Your shipment is out for delivery in Pune.' }
+            ],
+            assignedDriver: { 
+                name: 'Vikram Singh', 
+                phone: '+91 87654 32109', 
+                rating: 4.7,
+                avatar: null 
+            },
+            assignedVehicle: { 
+                plateNumber: 'MH-04-BZ-5678', 
+                model: 'Eicher Pro 2049', 
+                type: 'Truck' 
+            },
+            carrier: 'SphereForce West',
+            createdAt: new Date() 
+        }
     ];
 
     static async find(query) { return this.shipments; }

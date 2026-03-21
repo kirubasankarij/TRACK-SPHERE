@@ -7,21 +7,32 @@ import { getIO } from '../socket.js';
 
 export const getTrackingInfo = async (req, res, next) => {
     try {
+        const trackingNumber = req.params.trackingNumber;
+
         if (process.env.DEMO_MODE === 'true') {
             const { MockShipment } = await import('../models/mocks.js');
-            const shipment = await MockShipment.findOne({ trackingNumber: req.params.trackingNumber });
+            const shipment = await MockShipment.findOne({ trackingNumber });
             if (!shipment) return res.status(404).json({ msg: 'Shipment not found' });
             return res.json(shipment);
         }
 
-        const shipment = await Shipment.findOne({ trackingNumber: req.params.trackingNumber })
+        const shipment = await Shipment.findOne({ trackingNumber })
             .populate('assignedDriver')
             .populate('assignedVehicle');
 
-        if (!shipment) {
-            return res.status(404).json({ msg: 'Shipment not found' });
+        if (shipment) {
+            return res.json(shipment);
         }
-        res.json(shipment);
+
+        // Fallback: check demo/mock data for demo tracking IDs
+        const isDemoId = trackingNumber.startsWith('TF-') || trackingNumber.startsWith('TRK-');
+        if (isDemoId) {
+            const { MockShipment } = await import('../models/mocks.js');
+            const demoShipment = await MockShipment.findOne({ trackingNumber });
+            if (demoShipment) return res.json(demoShipment);
+        }
+
+        return res.status(404).json({ msg: 'Shipment not found' });
     } catch (err) {
         next(err);
     }

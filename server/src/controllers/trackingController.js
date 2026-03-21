@@ -8,6 +8,7 @@ import { getIO } from '../socket.js';
 export const getTrackingInfo = async (req, res, next) => {
     try {
         const trackingNumber = req.params.trackingNumber;
+        const isDemoId = trackingNumber.startsWith('TF-') || trackingNumber.startsWith('TRK-');
 
         if (process.env.DEMO_MODE === 'true') {
             const { MockShipment } = await import('../models/mocks.js');
@@ -16,16 +17,23 @@ export const getTrackingInfo = async (req, res, next) => {
             return res.json(shipment);
         }
 
-        const shipment = await Shipment.findOne({ trackingNumber })
-            .populate('assignedDriver')
-            .populate('assignedVehicle');
+        // Try real DB first, but don't let DB errors block demo IDs
+        let shipment = null;
+        try {
+            shipment = await Shipment.findOne({ trackingNumber })
+                .populate('assignedDriver')
+                .populate('assignedVehicle');
+        } catch (dbErr) {
+            console.error('DB query failed for tracking:', dbErr.message);
+            // If it's a demo ID, we can still fall through to mock data below
+            if (!isDemoId) throw dbErr;
+        }
 
         if (shipment) {
             return res.json(shipment);
         }
 
-        // Fallback: check demo/mock data for demo tracking IDs
-        const isDemoId = trackingNumber.startsWith('TF-') || trackingNumber.startsWith('TRK-');
+        // Fallback: always serve demo/mock data for demo tracking IDs
         if (isDemoId) {
             const { MockShipment } = await import('../models/mocks.js');
             const demoShipment = await MockShipment.findOne({ trackingNumber });

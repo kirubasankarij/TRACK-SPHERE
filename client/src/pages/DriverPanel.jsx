@@ -387,9 +387,9 @@ const DriverPanel = () => {
                         <p className="text-gray-500 mb-8 text-xs md:text-sm">Your delivery roster is synced with the master dispatcher.</p>
                         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3 mb-8">
                             {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, i) => (
-                                <div key={day} className={`p-4 rounded-2xl border-2 text-center ${i < 5 ? 'border-orange-200 bg-orange-50' : 'border-white/10 bg-white/5'}`}>
+                                <div key={day} className={`p-4 rounded-2xl border-2 text-center ${i < 5 ? 'border-blue-500/20 bg-blue-500/10' : 'border-white/10 bg-white/5'}`}>
                                     <p className="text-[10px] font-black uppercase text-gray-400 mb-2">{day}</p>
-                                    <p className={`font-black ${i < 5 ? 'text-orange-600' : 'text-gray-300'}`}>{i < 5 ? `${i + 2}-${i + 4}` : '–'}</p>
+                                    <p className={`font-black ${i < 5 ? 'text-blue-400' : 'text-gray-300'}`}>{i < 5 ? `${i + 2}-${i + 4}` : '–'}</p>
                                     <p className="text-[10px] text-gray-400 mt-1 font-bold">{i < 5 ? 'deliveries' : 'off'}</p>
                                 </div>
                             ))}
@@ -397,13 +397,13 @@ const DriverPanel = () => {
                         <div className="space-y-3">
                             <h4 className="text-lg font-black text-white">Today's Assigned Deliveries</h4>
                             {activeNonDelivered.map((s, i) => (
-                                <div key={i} className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 bg-orange-50 border border-orange-100 rounded-2xl transition-all hover:border-orange-200">
-                                    <div className="w-10 h-10 bg-orange-600 text-white rounded-xl flex items-center justify-center font-black shrink-0">{i + 1}</div>
+                                <div key={i} className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 bg-white/5 border border-white/10 rounded-2xl transition-all hover:border-orange-500/30">
+                                    <div className="w-10 h-10 bg-blue-600 text-white rounded-xl flex items-center justify-center font-black shrink-0">{i + 1}</div>
                                     <div className="flex-1 min-w-0">
                                         <p className="font-black text-white">{s.trackingNumber}</p>
                                         <p className="text-xs text-gray-500 truncate">📍 {s.receiver?.address}</p>
                                     </div>
-                                    <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase ${s.status === 'in-transit' ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'}`}>
+                                    <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase ${s.status === 'in-transit' ? 'bg-blue-500/20 text-blue-400' : 'bg-orange-500/20 text-orange-400'}`}>
                                         {s.status}
                                     </span>
                                 </div>
@@ -641,11 +641,11 @@ const DriverPanel = () => {
                     {/* Left: QR & Digital ID */}
                     <div className="lg:col-span-1 space-y-6">
                         <div className="glass-card flex flex-col items-center text-center p-8">
-                            <div className="h-24 w-24 rounded-2xl bg-orange-600 flex items-center justify-center text-3xl mb-4 shadow-lg shadow-orange-600/20">👤</div>
+                            <div className="h-24 w-24 rounded-2xl bg-blue-600 flex items-center justify-center text-3xl mb-4 shadow-lg shadow-blue-600/20">👤</div>
                             <h3 className="text-xl font-black text-white">{user?.name}</h3>
                             <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">ID: {driverProfile?._id?.slice(-8).toUpperCase() || 'DRV-7882'}</p>
                             
-                            <div className="mt-8 p-4 bg-white rounded-2xl shadow-inner border-4 border-orange-500/20">
+                            <div className="mt-8 p-4 bg-white rounded-2xl shadow-inner border-4 border-blue-500/20">
                                 <QRCodeCanvas 
                                     value={
                                         networkIp && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
@@ -703,7 +703,7 @@ const DriverPanel = () => {
                                 </div>
                                 <button 
                                     onClick={() => setIsEditingProfile(!isEditingProfile)}
-                                    className={`px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${isEditingProfile ? 'bg-gray-200 text-gray-800' : 'bg-orange-600 text-white shadow-lg shadow-orange-600/20'}`}
+                                    className={`px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${isEditingProfile ? 'bg-gray-200 text-gray-800' : 'bg-blue-600 text-white shadow-lg shadow-blue-600/20'}`}
                                 >
                                     {isEditingProfile ? 'Cancel' : 'Edit Profile'}
                                 </button>
@@ -713,7 +713,7 @@ const DriverPanel = () => {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     {/* Personal Details */}
                                     <div className="space-y-4">
-                                        <h4 className="text-[10px] font-black text-orange-500 uppercase tracking-[0.2em]">🏠 Personal & Address</h4>
+                                        <h4 className="text-[10px] font-black text-blue-400 uppercase tracking-[0.2em]">🏠 Personal & Address</h4>
                                         <div className="space-y-1">
                                             <label className="text-[10px] font-bold text-gray-400">Full Name</label>
                                             <input type="text" disabled value={user?.name} className="w-full bg-white/5 border border-white/10 p-3 rounded-xl text-sm font-bold text-gray-400 cursor-not-allowed" />
@@ -724,7 +724,7 @@ const DriverPanel = () => {
                                                 disabled={!isEditingProfile}
                                                 value={profileForm.address}
                                                 onChange={e => setProfileForm({...profileForm, address: e.target.value})}
-                                                className="w-full bg-white/5 border border-white/10 p-3 rounded-xl text-sm font-bold text-white focus:border-orange-500 outline-none transition-all"
+                                                className="w-full bg-white/5 border border-white/10 p-3 rounded-xl text-sm font-bold text-white focus:border-blue-500 outline-none transition-all"
                                                 rows="3"
                                                 placeholder="Enter your registered address"
                                             />
@@ -741,7 +741,7 @@ const DriverPanel = () => {
                                                     disabled={!isEditingProfile}
                                                     value={profileForm.bloodGroup}
                                                     onChange={e => setProfileForm({...profileForm, bloodGroup: e.target.value})}
-                                                    className="w-full bg-white/5 border border-white/10 p-3 rounded-xl text-sm font-bold text-white focus:border-orange-500 outline-none transition-all appearance-none"
+                                                    className="w-full bg-white/5 border border-white/10 p-3 rounded-xl text-sm font-bold text-white focus:border-blue-500 outline-none transition-all appearance-none"
                                                 >
                                                     <option value="">Select</option>
                                                     {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map(bg => <option key={bg} value={bg}>{bg}</option>)}
@@ -755,7 +755,7 @@ const DriverPanel = () => {
                                                         type="checkbox" 
                                                         checked={profileForm.organDonor}
                                                         onChange={e => setProfileForm({...profileForm, organDonor: e.target.checked})}
-                                                        className="h-5 w-5 rounded accent-orange-500"
+                                                        className="h-5 w-5 rounded accent-blue-500"
                                                     />
                                                     <span className="text-xs font-bold text-white">{profileForm.organDonor ? 'YES' : 'NO'}</span>
                                                 </div>
@@ -769,14 +769,14 @@ const DriverPanel = () => {
                                                 value={profileForm.medicalConditions}
                                                 onChange={e => setProfileForm({...profileForm, medicalConditions: e.target.value})}
                                                 placeholder="e.g., Diabetes, Hypertension"
-                                                className="w-full bg-white/5 border border-white/10 p-3 rounded-xl text-sm font-bold text-white focus:border-orange-500 outline-none transition-all"
+                                                className="w-full bg-white/5 border border-white/10 p-3 rounded-xl text-sm font-bold text-white focus:border-blue-500 outline-none transition-all"
                                             />
                                         </div>
                                     </div>
 
                                     {/* Emergency Contact */}
                                     <div className="space-y-4">
-                                        <h4 className="text-[10px] font-black text-orange-500 uppercase tracking-[0.2em]">🚨 Emergency Contact</h4>
+                                        <h4 className="text-[10px] font-black text-blue-400 uppercase tracking-[0.2em]">🚨 Emergency Contact</h4>
                                         <div className="space-y-1">
                                             <label className="text-[10px] font-bold text-gray-400">Contact Person Name</label>
                                             <input 
@@ -784,7 +784,7 @@ const DriverPanel = () => {
                                                 type="text" 
                                                 value={profileForm.emergencyContact?.name}
                                                 onChange={e => setProfileForm({...profileForm, emergencyContact: {...profileForm.emergencyContact, name: e.target.value}})}
-                                                className="w-full bg-white/5 border border-white/10 p-3 rounded-xl text-sm font-bold text-white focus:border-orange-500 outline-none transition-all"
+                                                className="w-full bg-white/5 border border-white/10 p-3 rounded-xl text-sm font-bold text-white focus:border-blue-500 outline-none transition-all"
                                             />
                                         </div>
                                         <div className="space-y-1">
@@ -794,7 +794,7 @@ const DriverPanel = () => {
                                                 type="text" 
                                                 value={profileForm.emergencyContact?.phone}
                                                 onChange={e => setProfileForm({...profileForm, emergencyContact: {...profileForm.emergencyContact, phone: e.target.value}})}
-                                                className="w-full bg-white/5 border border-white/10 p-3 rounded-xl text-sm font-bold text-white focus:border-orange-500 outline-none transition-all"
+                                                className="w-full bg-white/5 border border-white/10 p-3 rounded-xl text-sm font-bold text-white focus:border-blue-500 outline-none transition-all"
                                             />
                                         </div>
                                     </div>
@@ -809,7 +809,7 @@ const DriverPanel = () => {
                                                 type="text" 
                                                 value={profileForm.licenseNumber}
                                                 onChange={e => setProfileForm({...profileForm, licenseNumber: e.target.value})}
-                                                className="w-full bg-white/5 border border-white/10 p-3 rounded-xl text-sm font-bold text-white focus:border-orange-500 outline-none transition-all uppercase"
+                                                className="w-full bg-white/5 border border-white/10 p-3 rounded-xl text-sm font-bold text-white focus:border-blue-500 outline-none transition-all uppercase"
                                             />
                                         </div>
                                         <div className="space-y-1">
@@ -823,7 +823,7 @@ const DriverPanel = () => {
                                     <div className="pt-6 border-t border-white/10">
                                         <button 
                                             type="submit"
-                                            className="w-full py-4 bg-orange-600 text-white rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-orange-600/20 active:scale-98 transition-all"
+                                            className="w-full py-4 bg-blue-600 text-white rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-blue-600/20 active:scale-98 transition-all"
                                         >
                                             💾 Save Changes & Sync Fleet Account
                                         </button>
@@ -896,30 +896,30 @@ const DriverPanel = () => {
                     {/* AI Outputs */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
                         {/* Delay Prediction */}
-                        <div className="glass-card bg-gradient-to-br from-red-50 to-white border-l-4 border-red-400 p-6 md:p-8">
+                        <div className="glass-card bg-gradient-to-br from-red-500/10 to-blue-900/20 border-l-4 border-red-400 p-6 md:p-8">
                             <p className="text-[10px] font-black uppercase tracking-widest text-red-400 mb-2">⚠️ Delay Prediction</p>
                             <h3 className="text-3xl md:text-4xl font-black text-white">+{aiPrediction?.predictedDelay || 0}<span className="text-xl text-gray-400 ml-1">min</span></h3>
                             <div className="mt-4 space-y-2">
                                 <div className="flex justify-between text-[10px] font-bold">
-                                    <span className="text-gray-500">Probability</span>
-                                    <span className={aiPrediction?.delayProbability > 60 ? 'text-red-600' : 'text-green-600'}>{aiPrediction?.delayProbability || 0}%</span>
+                                    <span className="text-gray-400">Probability</span>
+                                    <span className={aiPrediction?.delayProbability > 60 ? 'text-red-400' : 'text-green-400'}>{aiPrediction?.delayProbability || 0}%</span>
                                 </div>
                                 <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
                                     <div className="h-full bg-red-500 rounded-full transition-all duration-700" style={{ width: `${aiPrediction?.delayProbability || 0}%` }}></div>
                                 </div>
                             </div>
-                            <p className="text-[11px] text-gray-600 mt-4 font-medium leading-tight">📊 {aiPrediction?.reason}</p>
-                            <p className="text-[9px] text-gray-400 mt-1 uppercase font-bold tracking-tighter">Confidence Index: {aiPrediction?.confidence || 85}%</p>
+                            <p className="text-[11px] text-gray-300 mt-4 font-medium leading-tight">📊 {aiPrediction?.reason}</p>
+                            <p className="text-[9px] text-gray-500 mt-1 uppercase font-bold tracking-tighter">Confidence Index: {aiPrediction?.confidence || 85}%</p>
                         </div>
 
                         {/* Smart ETA */}
-                        <div className="glass-card bg-gradient-to-br from-blue-50 to-white border-l-4 border-blue-400 p-6 md:p-8">
+                        <div className="glass-card bg-gradient-to-br from-blue-500/10 to-blue-900/20 border-l-4 border-blue-400 p-6 md:p-8">
                             <p className="text-[10px] font-black uppercase tracking-widest text-blue-400 mb-2">🕐 Smart ETA</p>
                             <h3 className="text-3xl md:text-4xl font-black text-white">{aiETA?.etaTime || '—'}</h3>
-                            <p className="text-xs md:text-sm text-blue-600 font-bold mt-2">~{aiETA?.totalMinutes || 0} minutes from now</p>
-                            <div className="mt-4 bg-blue-50/50 p-3 rounded-xl">
-                                <p className="text-[10px] font-black text-blue-700 uppercase tracking-tighter">Factors applied:</p>
-                                <ul className="text-[10px] text-blue-600 mt-1 space-y-0.5 font-bold">
+                            <p className="text-xs md:text-sm text-blue-400 font-bold mt-2">~{aiETA?.totalMinutes || 0} minutes from now</p>
+                            <div className="mt-4 bg-blue-500/10 p-3 rounded-xl border border-blue-500/20">
+                                <p className="text-[10px] font-black text-blue-300 uppercase tracking-tighter">Factors applied:</p>
+                                <ul className="text-[10px] text-blue-400 mt-1 space-y-0.5 font-bold">
                                     <li>• Base travel: 90 min</li>
                                     <li>• Traffic: {aiTraffic === 'light' ? '0' : aiTraffic === 'moderate' ? '5' : aiTraffic === 'heavy' ? '25' : '60'} min</li>
                                     <li>• Weather: {['rain', 'snow', 'storm'].includes(aiWeather) ? '15' : '0'} min</li>
@@ -928,15 +928,15 @@ const DriverPanel = () => {
                         </div>
 
                         {/* Route Optimization */}
-                        <div className="glass-card bg-gradient-to-br from-green-50 to-white border-l-4 border-green-400 p-6 md:p-8 sm:col-span-2 lg:col-span-1">
+                        <div className="glass-card bg-gradient-to-br from-green-500/10 to-blue-900/20 border-l-4 border-green-400 p-6 md:p-8 sm:col-span-2 lg:col-span-1">
                             <p className="text-[10px] font-black uppercase tracking-widest text-green-400 mb-2">🗺️ Route Optimization</p>
                             <h3 className="text-3xl md:text-4xl font-black text-white">-{aiRoute?.saving || 0}<span className="text-xl text-gray-400 ml-1">min</span></h3>
-                            <p className="text-[11px] md:text-sm text-green-600 font-bold mt-2">Faster route found!</p>
-                            <div className="mt-4 bg-green-50/50 p-3 rounded-xl">
-                                <p className="text-[10px] font-black text-green-700 mb-1 uppercase tracking-tighter">Optimized Path:</p>
-                                <p className="text-[10px] text-green-600 font-bold leading-tight">{aiRoute?.alternative || 'Route already optimal'}</p>
+                            <p className="text-[11px] md:text-sm text-green-400 font-bold mt-2">Faster route found!</p>
+                            <div className="mt-4 bg-green-500/10 p-3 rounded-xl border border-green-500/20">
+                                <p className="text-[10px] font-black text-green-300 mb-1 uppercase tracking-tighter">Optimized Path:</p>
+                                <p className="text-[10px] text-green-400 font-bold leading-tight">{aiRoute?.alternative || 'Route already optimal'}</p>
                             </div>
-                            <p className="text-[10px] text-gray-500 mt-3 font-medium italic">{aiRoute?.message}</p>
+                            <p className="text-[10px] text-gray-400 mt-3 font-medium italic">{aiRoute?.message}</p>
                         </div>
                     </div>
 

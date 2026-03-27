@@ -12,6 +12,19 @@ const driverSchema = new mongoose.Schema({
         lat: Number,
         lng: Number,
     },
+    // New Fields
+    address: { type: String },
+    bloodGroup: { type: String },
+    organDonor: { type: Boolean, default: false },
+    emergencyContact: {
+        name: { type: String },
+        phone: { type: String },
+    },
+    medicalConditions: { type: String },
+    company: {
+        name: { type: String, default: 'TrackSphere' },
+        contact: { type: String, default: '+91 1800-TRACK-00' }
+    },
     performanceStats: {
         totalDeliveries: { type: Number, default: 0 },
         onTimeDeliveries: { type: Number, default: 0 },

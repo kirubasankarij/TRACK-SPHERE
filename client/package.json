@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite --port 2006 --host",
+    "dev": "vite --port 2006 --strictPort --host 0.0.0.0",
     "build": "vite build",
     "lint": "eslint src --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
@@ -18,6 +18,7 @@
     "date-fns": "^2.30.0",
     "firebase": "^9.22.0",
     "leaflet": "^1.9.4",
+    "qrcode.react": "^4.2.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-hook-form": "^7.45.0",
@@ -26,6 +27,7 @@
     "react-query": "^3.39.3",
     "react-router-dom": "^6.14.0",
     "socket.io-client": "^4.6.0",
+    "trackflow-workspace": "file:..",
     "zod": "^3.21.4",
     "zustand": "^4.3.9"
   },

@@ -49,6 +49,10 @@ const mockDrivers = [
     license: "TN-38-2022-001",
     avatar: null,
     trips: 156,
+    address: '123, Anna Salai, Chennai',
+    bloodGroup: 'B+',
+    organDonor: true,
+    emergencyContact: { name: 'Kavitha Raj', phone: '+91 98765 00000' }
   },
   {
     name: "Kiruba",
@@ -59,6 +63,8 @@ const mockDrivers = [
     license: "MH-12-2021-044",
     avatar: null,
     trips: 98,
+    bloodGroup: 'O+',
+    emergencyContact: { name: 'Sankari', phone: '+91 88888 66666' }
   },
   {
     name: "Vicknesh",
@@ -69,6 +75,8 @@ const mockDrivers = [
     license: "DL-04-2020-088",
     avatar: null,
     trips: 212,
+    bloodGroup: 'AB-',
+    emergencyContact: { name: 'Amma', phone: '+91 99999 22222' }
   },
 ];
 
@@ -249,7 +257,7 @@ const AdminPanel = () => {
     setAlertsLoading(true);
     try {
       const res = await axios
-        .get("/api/notifications?role=admin")
+        .get("/notifications?role=admin")
         .catch(() => ({ data: { notifications: [] } }));
       const notifications = res.data.notifications || [];
       setDelayAlerts(notifications);
@@ -526,7 +534,7 @@ const AdminPanel = () => {
 
   const markAsRead = async (id) => {
     try {
-      await axios.patch(`/api/notifications/${id}/read`);
+      await axios.patch(`/notifications/${id}/read`);
       setDelayAlerts(
         delayAlerts.map((n) => (n._id === id ? { ...n, read: true } : n)),
       );
@@ -947,6 +955,27 @@ const AdminPanel = () => {
                       ></div>
                     </div>
                   </div>
+
+                  {/* New Admin-only Driver Details */}
+                  <div className="mt-4 pt-4 border-t border-gray-100 space-y-3">
+                    <div className="flex justify-between items-start">
+                       <div>
+                          <p className="text-[9px] font-black text-gray-400 uppercase">Emergency Info</p>
+                          <p className="text-[11px] font-bold text-gray-800">{driver.emergencyContact?.name || driver.emergencyContactName || 'N/A'}</p>
+                          <p className="text-[10px] font-black text-red-600">{driver.emergencyContact?.phone || driver.emergencyContactNumber || 'N/A'}</p>
+                       </div>
+                       <div className="text-right">
+                          <p className="text-[9px] font-black text-gray-400 uppercase">Medical</p>
+                          <p className="text-[11px] font-black text-red-700">{driver.bloodGroup || 'UNK'}</p>
+                          <p className="text-[9px] font-bold text-gray-500">{driver.organDonor ? 'Donor' : ''}</p>
+                       </div>
+                    </div>
+                    <div>
+                       <p className="text-[9px] font-black text-gray-400 uppercase">Stored Address</p>
+                       <p className="text-[10px] font-medium text-gray-600 line-clamp-1">{driver.address || 'No address logged'}</p>
+                    </div>
+                  </div>
+
                   <div className="flex gap-2 mt-5 pt-5 border-t border-gray-50">
                     <button className="flex-1 py-2 text-[10px] font-black text-blue-600 bg-blue-50 rounded-xl hover:bg-blue-100 uppercase tracking-widest">
                       Connect
@@ -1439,16 +1468,17 @@ const AdminPanel = () => {
                     className={`glass-card p-5 border-l-4 ${alert.read ? "border-gray-200" : "border-red-500 bg-red-50/30"}`}
                   >
                     <div className="flex justify-between items-start mb-2">
-                      <h4 className="font-black text-gray-800">
+                      <h4 className="font-black text-white">
                         {alert.title}
                       </h4>
                       <span className="text-[10px] text-white/80 font-bold">
                         {new Date(alert.createdAt).toLocaleString()}
                       </span>
                     </div>
-                    <p className="text-sm text-gray-600 mb-4">
+                    <p className="text-sm text-white/90 mb-4">
                       {alert.message}
                     </p>
+
                     <div className="flex justify-between items-center">
                       <span className="text-[10px] font-black uppercase tracking-widest text-blue-600 bg-blue-50 px-2 py-1 rounded">
                         {alert.type}

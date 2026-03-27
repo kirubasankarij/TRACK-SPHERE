@@ -6,6 +6,7 @@ import FuelTracker from '../components/driver/FuelTracker';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-hot-toast';
 import VoiceSOSControls from '../components/driver/VoiceSOSControls';
+import { QRCodeCanvas } from 'qrcode.react';
 
 /* ───── Mock AI Engine (Client-side representation of server AI service) ───── */
 const AIEngine = {
@@ -114,6 +115,17 @@ const DriverPanel = () => {
     const [delayReason, setDelayReason] = useState('');
     const [delayTime, setDelayTime] = useState(30);
     const [proofFile, setProofFile] = useState(null);
+    const [driverProfile, setDriverProfile] = useState(null);
+    const [profileLoading, setProfileLoading] = useState(true);
+    const [isEditingProfile, setIsEditingProfile] = useState(false);
+    const [profileForm, setProfileForm] = useState({
+        address: '',
+        bloodGroup: '',
+        organDonor: false,
+        emergencyContact: { name: '', phone: '' },
+        medicalConditions: '',
+        licenseNumber: ''
+    });
 
     // AI State
     const [aiTraffic, setAiTraffic] = useState('moderate');
@@ -122,6 +134,7 @@ const DriverPanel = () => {
     const [aiETA, setAiETA] = useState(null);
     const [aiRoute, setAiRoute] = useState(null);
     const [aiNotification, setAiNotification] = useState(null);
+    const [networkIp, setNetworkIp] = useState(null);
     const gpsRef = useRef(null);
 
     /* Fetch Shipments */
@@ -142,6 +155,47 @@ const DriverPanel = () => {
             }
         };
         fetchShipments();
+
+        const fetchProfile = async () => {
+            try {
+                const res = await axios.get('/driver/profile').catch(() => null);
+                if (res?.data?.data) {
+                    setDriverProfile(res.data.data);
+                    setProfileForm(res.data.data);
+                } else {
+                    // Demo fallback
+                    const demoProfile = {
+                        _id: 'demo-driver-123',
+                        address: '123, Anna Salai, Chennai',
+                        bloodGroup: 'O+',
+                        organDonor: true,
+                        emergencyContact: { name: 'Kavitha Raj', phone: '+91 98765 00000' },
+                        medicalConditions: 'None',
+                        licenseNumber: 'TN-38-2022-0012345',
+                        company: { name: 'TrackSphere', contact: '+91 1800-TRACK-00' }
+                    };
+                    setDriverProfile(demoProfile);
+                    setProfileForm(demoProfile);
+                }
+            } catch {
+                // Silently fail for demo
+            } finally {
+                setProfileLoading(false);
+            }
+        };
+        fetchProfile();
+
+        const fetchNetworkConfig = async () => {
+            try {
+                const res = await axios.get('/config/network').catch(() => null);
+                if (res?.data?.networkIp) {
+                    setNetworkIp(res.data.networkIp);
+                }
+            } catch (e) {
+                console.error('Failed to fetch network config', e);
+            }
+        };
+        fetchNetworkConfig();
     }, []);
 
     /* GPS Simulation */
@@ -210,7 +264,7 @@ const DriverPanel = () => {
     const handleReportDelay = async () => {
         if (!delayReason) return toast.error('Please select a reason');
         try {
-            const res = await axios.post('/api/tracking/report-delay', {
+            const res = await axios.post('/tracking/report-delay', {
                 trackingNumber: activeShipment.trackingNumber,
                 reason: delayReason,
                 estimatedMinutes: delayTime
@@ -265,12 +319,28 @@ const DriverPanel = () => {
         setProofFile(null);
     };
 
+    const handleUpdateProfile = async (e) => {
+        e.preventDefault();
+        try {
+            await axios.put('/driver/profile', profileForm);
+            setDriverProfile({ ...driverProfile, ...profileForm });
+            setIsEditingProfile(false);
+            toast.success('Profile updated successfully!');
+        } catch (err) {
+            toast.error('Failed to update profile.');
+            // Demo fallback
+            setDriverProfile({ ...driverProfile, ...profileForm });
+            setIsEditingProfile(false);
+        }
+    };
+
     const tabs = [
         { id: 'dashboard', label: 'Dashboard', icon: '📊' },
         { id: 'shipments', label: 'Active Tasks', icon: '🚚' },
         { id: 'ai', label: 'AI Engine', icon: '🤖' },
         { id: 'schedule', label: 'Schedule', icon: '📅' },
         { id: 'fuel', label: 'Fuel Logs', icon: '⛽' },
+        { id: 'profile', label: 'Profile', icon: '👤' },
     ];
 
     const activeNonDelivered = shipments.filter(s => s.status !== 'delivered');
@@ -561,6 +631,207 @@ const DriverPanel = () => {
                                 </div>
                             </div>
                         )}
+                    </div>
+                </div>
+            )}
+
+            {/* ───── PROFILE TAB ───── */}
+            {activeTab === 'profile' && (
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    {/* Left: QR & Digital ID */}
+                    <div className="lg:col-span-1 space-y-6">
+                        <div className="glass-card flex flex-col items-center text-center p-8">
+                            <div className="h-24 w-24 rounded-2xl bg-orange-600 flex items-center justify-center text-3xl mb-4 shadow-lg shadow-orange-600/20">👤</div>
+                            <h3 className="text-xl font-black text-white">{user?.name}</h3>
+                            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">ID: {driverProfile?._id?.slice(-8).toUpperCase() || 'DRV-7882'}</p>
+                            
+                            <div className="mt-8 p-4 bg-white rounded-2xl shadow-inner border-4 border-orange-500/20">
+                                <QRCodeCanvas 
+                                    value={
+                                        networkIp && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+                                            ? `http://${networkIp}:2006/driver/public/${driverProfile?._id || 'demo'}`
+                                            : `${window.location.origin}/driver/public/${driverProfile?._id || 'demo'}`
+                                    } 
+                                    size={160}
+                                    level="H"
+                                    includeMargin={true}
+                                />
+                            </div>
+
+                            <p className="text-[10px] font-bold text-gray-500 mt-4 uppercase tracking-tighter">Your Smart Safety QR Code</p>
+                            
+                            <div className="mt-6 w-full pt-6 border-t border-white/10">
+                                <button 
+                                    onClick={() => window.open(`/driver/public/${driverProfile?._id || 'demo'}`, '_blank')}
+                                    className="w-full py-3 px-4 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all text-white"
+                                >
+                                    👁️ Preview Public Card
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Smart Medical Card Preview */}
+                        <div className="glass-card bg-red-600/10 border-2 border-red-600/30 overflow-hidden relative">
+                            <div className="absolute top-0 right-0 p-3 bg-red-600 text-white text-[10px] font-black uppercase rounded-bl-xl">Emergency Card</div>
+                            <div className="space-y-4">
+                                <div>
+                                    <p className="text-[10px] font-black text-red-500 uppercase tracking-widest">Blood Group</p>
+                                    <p className="text-2xl font-black text-white">{driverProfile?.bloodGroup || 'Not Set'}</p>
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-black text-red-500 uppercase tracking-widest">Emergency Contact</p>
+                                    <p className="font-bold text-white">{driverProfile?.emergencyContact?.name || 'No Name Set'}</p>
+                                    <p className="text-sm font-black text-red-600">{driverProfile?.emergencyContact?.phone || 'No Phone Set'}</p>
+                                </div>
+                                <div className="pt-2 border-t border-red-600/20 flex justify-between">
+                                    <span className="text-[9px] font-bold text-gray-400">ORGAN DONOR</span>
+                                    <span className={`text-[9px] font-black uppercase ${driverProfile?.organDonor ? 'text-green-500' : 'text-gray-500'}`}>
+                                        {driverProfile?.organDonor ? '✅ YES' : '❌ NO'}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Right: Profile Information Form */}
+                    <div className="lg:col-span-2">
+                        <div className="glass-card">
+                            <div className="flex justify-between items-center mb-8">
+                                <div>
+                                    <h3 className="text-2xl font-black text-white">Full Driver Profile</h3>
+                                    <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mt-1">Manage your professional and medical data</p>
+                                </div>
+                                <button 
+                                    onClick={() => setIsEditingProfile(!isEditingProfile)}
+                                    className={`px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${isEditingProfile ? 'bg-gray-200 text-gray-800' : 'bg-orange-600 text-white shadow-lg shadow-orange-600/20'}`}
+                                >
+                                    {isEditingProfile ? 'Cancel' : 'Edit Profile'}
+                                </button>
+                            </div>
+
+                            <form onSubmit={handleUpdateProfile} className="space-y-6">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    {/* Personal Details */}
+                                    <div className="space-y-4">
+                                        <h4 className="text-[10px] font-black text-orange-500 uppercase tracking-[0.2em]">🏠 Personal & Address</h4>
+                                        <div className="space-y-1">
+                                            <label className="text-[10px] font-bold text-gray-400">Full Name</label>
+                                            <input type="text" disabled value={user?.name} className="w-full bg-white/5 border border-white/10 p-3 rounded-xl text-sm font-bold text-gray-400 cursor-not-allowed" />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-[10px] font-bold text-gray-400">House Address</label>
+                                            <textarea 
+                                                disabled={!isEditingProfile}
+                                                value={profileForm.address}
+                                                onChange={e => setProfileForm({...profileForm, address: e.target.value})}
+                                                className="w-full bg-white/5 border border-white/10 p-3 rounded-xl text-sm font-bold text-white focus:border-orange-500 outline-none transition-all"
+                                                rows="3"
+                                                placeholder="Enter your registered address"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* Medical Details */}
+                                    <div className="space-y-4">
+                                        <h4 className="text-[10px] font-black text-red-500 uppercase tracking-[0.2em]">🩸 Medical Information</h4>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-1">
+                                                <label className="text-[10px] font-bold text-gray-400">Blood Group</label>
+                                                <select 
+                                                    disabled={!isEditingProfile}
+                                                    value={profileForm.bloodGroup}
+                                                    onChange={e => setProfileForm({...profileForm, bloodGroup: e.target.value})}
+                                                    className="w-full bg-white/5 border border-white/10 p-3 rounded-xl text-sm font-bold text-white focus:border-orange-500 outline-none transition-all appearance-none"
+                                                >
+                                                    <option value="">Select</option>
+                                                    {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map(bg => <option key={bg} value={bg}>{bg}</option>)}
+                                                </select>
+                                            </div>
+                                            <div className="space-y-1">
+                                                <label className="text-[10px] font-bold text-gray-400">Organ Donor</label>
+                                                <div className="flex items-center gap-3 p-3 bg-white/5 border border-white/10 rounded-xl h-[46px]">
+                                                    <input 
+                                                        disabled={!isEditingProfile}
+                                                        type="checkbox" 
+                                                        checked={profileForm.organDonor}
+                                                        onChange={e => setProfileForm({...profileForm, organDonor: e.target.checked})}
+                                                        className="h-5 w-5 rounded accent-orange-500"
+                                                    />
+                                                    <span className="text-xs font-bold text-white">{profileForm.organDonor ? 'YES' : 'NO'}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-[10px] font-bold text-gray-400">Known Medical Conditions (Optional)</label>
+                                            <input 
+                                                disabled={!isEditingProfile}
+                                                type="text" 
+                                                value={profileForm.medicalConditions}
+                                                onChange={e => setProfileForm({...profileForm, medicalConditions: e.target.value})}
+                                                placeholder="e.g., Diabetes, Hypertension"
+                                                className="w-full bg-white/5 border border-white/10 p-3 rounded-xl text-sm font-bold text-white focus:border-orange-500 outline-none transition-all"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* Emergency Contact */}
+                                    <div className="space-y-4">
+                                        <h4 className="text-[10px] font-black text-orange-500 uppercase tracking-[0.2em]">🚨 Emergency Contact</h4>
+                                        <div className="space-y-1">
+                                            <label className="text-[10px] font-bold text-gray-400">Contact Person Name</label>
+                                            <input 
+                                                disabled={!isEditingProfile}
+                                                type="text" 
+                                                value={profileForm.emergencyContact?.name}
+                                                onChange={e => setProfileForm({...profileForm, emergencyContact: {...profileForm.emergencyContact, name: e.target.value}})}
+                                                className="w-full bg-white/5 border border-white/10 p-3 rounded-xl text-sm font-bold text-white focus:border-orange-500 outline-none transition-all"
+                                            />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-[10px] font-bold text-gray-400">Contact Number</label>
+                                            <input 
+                                                disabled={!isEditingProfile}
+                                                type="text" 
+                                                value={profileForm.emergencyContact?.phone}
+                                                onChange={e => setProfileForm({...profileForm, emergencyContact: {...profileForm.emergencyContact, phone: e.target.value}})}
+                                                className="w-full bg-white/5 border border-white/10 p-3 rounded-xl text-sm font-bold text-white focus:border-orange-500 outline-none transition-all"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* Vehicle Details */}
+                                    <div className="space-y-4">
+                                        <h4 className="text-[10px] font-black text-blue-500 uppercase tracking-[0.2em]">🚗 Vehicle & License</h4>
+                                        <div className="space-y-1">
+                                            <label className="text-[10px] font-bold text-gray-400">License Number</label>
+                                            <input 
+                                                disabled={!isEditingProfile}
+                                                type="text" 
+                                                value={profileForm.licenseNumber}
+                                                onChange={e => setProfileForm({...profileForm, licenseNumber: e.target.value})}
+                                                className="w-full bg-white/5 border border-white/10 p-3 rounded-xl text-sm font-bold text-white focus:border-orange-500 outline-none transition-all uppercase"
+                                            />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-[10px] font-bold text-gray-400">Company</label>
+                                            <input type="text" disabled value="TrackSphere Logistics" className="w-full bg-white/5 border border-white/10 p-3 rounded-xl text-sm font-bold text-gray-400 cursor-not-allowed" />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {isEditingProfile && (
+                                    <div className="pt-6 border-t border-white/10">
+                                        <button 
+                                            type="submit"
+                                            className="w-full py-4 bg-orange-600 text-white rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-orange-600/20 active:scale-98 transition-all"
+                                        >
+                                            💾 Save Changes & Sync Fleet Account
+                                        </button>
+                                        <p className="text-[10px] text-center text-gray-500 mt-4 font-bold uppercase tracking-tighter">Your safety information will be updated on the public digital ID page immediately.</p>
+                                    </div>
+                                )}
+                            </form>
+                        </div>
                     </div>
                 </div>
             )}

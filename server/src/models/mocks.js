@@ -192,7 +192,20 @@ export const MockDriver = class extends MockModel {
             licenseNumber: 'TN-38-2022-0012345',
             performanceStats: { totalDeliveries: 1542, rating: 4.9 },
             avatar: null,
-            status: 'active'
+            status: 'active',
+            // New Fields for Demo
+            address: '123, Anna Salai, Chennai, Tamil Nadu',
+            bloodGroup: 'B+',
+            organDonor: true,
+            emergencyContact: {
+                name: 'Kavitha Raj',
+                phone: '+91 98765 00000'
+            },
+            medicalConditions: 'None',
+            company: {
+                name: 'TrackSphere Logistics',
+                contact: '+91 1800-TRACK-00'
+            }
         }; 
     }
 };

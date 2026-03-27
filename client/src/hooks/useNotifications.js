@@ -7,7 +7,7 @@ export const useNotifications = () => {
 
     const fetchNotifications = async () => {
         try {
-            const response = await axios.get('/api/notifications');
+            const response = await axios.get('/notifications');
             setNotifications(response.data);
             setUnreadCount(response.data.filter(n => !n.read).length);
         } catch (err) {
@@ -21,7 +21,7 @@ export const useNotifications = () => {
 
     const markAsRead = async (id) => {
         try {
-            await axios.put(`/api/notifications/${id}/read`);
+            await axios.put(`/notifications/${id}/read`);
             fetchNotifications();
         } catch (err) {
             console.error('Mark Read Error:', err.message);

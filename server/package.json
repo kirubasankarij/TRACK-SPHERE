@@ -30,6 +30,7 @@
     "nodemailer": "^6.9.3",
     "redis": "^5.11.0",
     "socket.io": "^4.6.1",
+    "trackflow-workspace": "file:..",
     "twilio": "^4.23.0",
     "winston": "^3.9.0"
   },

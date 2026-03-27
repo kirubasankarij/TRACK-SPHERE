@@ -15,6 +15,7 @@ import DriverLogin from './pages/DriverLogin'
 import Support from './pages/Support'
 import CreateShipment from './pages/CreateShipment'
 import ShipmentHistory from './pages/ShipmentHistory'
+import PublicDriverProfile from './pages/PublicDriverProfile'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import ErrorBoundary from './components/common/ErrorBoundary'
 import SupportChatbot from './components/common/SupportChatbot'
@@ -69,6 +70,7 @@ function App() {
                                 <Route path="/admin" element={<AdminPanel />} />
                                 <Route path="/profile" element={<Profile />} />
                                 <Route path="/driver" element={<DriverPanel />} />
+                                <Route path="/driver/public/:id" element={<PublicDriverProfile />} />
                                 {/* Customer Modules */}
                                 <Route path="/create-shipment" element={<CreateShipment />} />
                                 <Route path="/history" element={<ShipmentHistory />} />

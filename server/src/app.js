@@ -4,10 +4,14 @@ import helmet from 'helmet';
 import compression from 'compression';
 import dotenv from 'dotenv';
 import path from 'path';
+import fs from 'fs';
+
 import { fileURLToPath } from 'url';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import connectDB from './config/database.js';
+import os from 'os';
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -65,8 +69,42 @@ app.use('/api/support', supportRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/sos', sosRoutes);
 
+// Network Config Route (to help with mobile QR code connection)
+app.get('/api/config/network', (req, res) => {
+    const interfaces = os.networkInterfaces();
+    let networkIp = 'localhost';
+    
+    for (const name of Object.keys(interfaces)) {
+        for (const iface of interfaces[name]) {
+            if (iface.family === 'IPv4' && !iface.internal) {
+                networkIp = iface.address;
+                break;
+            }
+        }
+        if (networkIp !== 'localhost') break;
+    }
+    
+    res.json({ networkIp, port: PORT });
+});
+
+
 // Serve React client build in production
 const clientBuildPath = path.join(__dirname, '../../client/dist');
+
+// Diagnostic: check if the build path exists
+console.log(`[Diagnostic] Serving static files from: ${clientBuildPath}`);
+if (fs.existsSync(clientBuildPath)) {
+    console.log('[Diagnostic] Client build directory found!');
+    const indexHtmlPath = path.join(clientBuildPath, 'index.html');
+    if (fs.existsSync(indexHtmlPath)) {
+        console.log('[Diagnostic] index.html found!');
+    } else {
+        console.warn('[Diagnostic] index.html NOT found in build directory!');
+    }
+} else {
+    console.error('[Diagnostic] Client build directory NOT found!');
+}
+
 app.use(express.static(clientBuildPath));
 
 // Catch-all: serve React app for any non-API route (client-side routing)
@@ -82,7 +120,18 @@ app.use(errorHandler);
 const PORT = process.env.PORT || 5000;
 
 httpServer.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+    console.log('-------------------------------------------');
+    console.log(`🚀 SERVER INITIALIZED SUCCESSFULLY`);
+    console.log(`📡 Listening on: http://localhost:${PORT}`);
+    console.log(`📁 Static Files: ${clientBuildPath}`);
+    console.log('-------------------------------------------');
+}).on('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+        console.error(`❌ FATAL ERROR: Port ${PORT} is already in use.`);
+    } else {
+        console.error(`❌ FATAL ERROR: Server failed to start: ${err.message}`);
+    }
+    process.exit(1);
 });
 
 export { io };

@@ -91,7 +91,7 @@ const Dashboard = () => {
 
     const markAllRead = async () => {
         try {
-            await axios.post('/api/notifications/mark-all-read', { role: 'customer' });
+            await axios.post('/notifications/mark-all-read', { role: 'customer' });
             setNotifications(prev => prev.map(n => ({ ...n, read: true })));
         } catch (e) {
             console.error('Failed to mark notifications read', e);
@@ -101,7 +101,7 @@ const Dashboard = () => {
     useEffect(() => {
         const fetchNotifications = async () => {
             try {
-                const res = await axios.get('/api/notifications?role=customer');
+                const res = await axios.get('/notifications?role=customer');
                 if (res.data.success) {
                     setNotifications(res.data.notifications.length > 0 ? res.data.notifications : DEMO_NOTIFICATIONS);
                 }

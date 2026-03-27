@@ -650,7 +650,7 @@ const DriverPanel = () => {
                                     value={
                                         networkIp && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
                                             ? `http://${networkIp}:2006/driver/public/${driverProfile?._id || 'demo'}`
-                                            : `${window.location.origin}/driver/public/${driverProfile?._id || 'demo'}`
+                                            : `https://tracksphere-api.onrender.com/driver/public/${driverProfile?._id || 'demo'}`
                                     } 
                                     size={160}
                                     level="H"

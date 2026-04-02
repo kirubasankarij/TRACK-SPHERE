@@ -3,6 +3,7 @@ import TrackingMap from '../components/tracking/TrackingMap';
 import StatusTimeline from '../components/tracking/StatusTimeline';
 import { useTracking } from '../hooks/useTracking';
 import { toast } from 'react-hot-toast';
+import { useSearchParams } from 'react-router-dom';
 
 // Normalized multi-carrier status model
 const STATUS_LEGEND = [
@@ -14,11 +15,14 @@ const STATUS_LEGEND = [
     { code: 'delivered', label: 'Delivered', icon: '✅', color: 'bg-accent/10 text-accent border border-accent/20' },
 ];
 
-const DEMO_IDS = ['TF-TN-DEMO', 'TF-DEMO-001', 'TRK-DEMO-2002'];
+const DEMO_IDS = ['TF-DEMO-001', 'TF-DEMO-002', 'TF-DEMO-003'];
 
 const TrackShipment = () => {
-    const [trackingInput, setTrackingInput] = useState('');
-    const [searchId, setSearchId] = useState(null);
+    const [searchParams] = useSearchParams();
+    const initialId = searchParams.get('id') || '';
+
+    const [trackingInput, setTrackingInput] = useState(initialId);
+    const [searchId, setSearchId] = useState(initialId || null);
     const [copied, setCopied] = useState(false);
     const { shipment, loading, error } = useTracking(searchId);
     const [delayNotifications, setDelayNotifications] = useState([]);
@@ -316,7 +320,7 @@ const TrackShipment = () => {
                         )}
                     </div>
                 </div>
-            ) : (
+            ) : error ? null : (
                 <div className="glass-card text-center py-20 bg-ai-card/40 border-white/5">
                     <div className="text-6xl mb-6">🛰️</div>
                     <h3 className="text-2xl font-black text-white mb-2">Initialize Node</h3>

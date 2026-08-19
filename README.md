@@ -1,5 +1,6 @@
-# 🚚 TrackFlow — Enterprise Real-Time Shipment Tracking & Logistics Platform
+# 🌐 TrackSphere — Enterprise Real-Time Shipment Tracking & Logistics Platform
 
+[![Live Demo](https://img.shields.io/badge/Live_Demo-Render-46E3B7.svg?style=for-the-badge&logo=render)](https://tracksphere-api.onrender.com)
 [![Build Status](https://img.shields.io/badge/Build-Passing-brightgreen.svg?style=for-the-badge&logo=github)](https://github.com/kirubasankarij/TRACK-SPHERE)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
 [![React](https://img.shields.io/badge/Frontend-React_18-61DAFB.svg?style=for-the-badge&logo=react)](https://react.dev/)
@@ -8,7 +9,31 @@
 [![Socket.io](https://img.shields.io/badge/Real--time-Socket.io-010101.svg?style=for-the-badge&logo=socket.io)](https://socket.io/)
 [![TailwindCSS](https://img.shields.io/badge/Styling-TailwindCSS-06B6D4.svg?style=for-the-badge&logo=tailwindcss)](https://tailwindcss.com/)
 
-TrackFlow is an end-to-end, enterprise-grade logistics and shipment management platform. Powered by **React, Node.js, Express, Socket.IO, and MongoDB**, TrackFlow enables real-time GPS tracking, automated delay predictions, driver management, emergency SOS alerts, and live customer updates.
+**TrackSphere** is an end-to-end, enterprise-grade logistics and shipment management platform. Powered by **React, Node.js, Express, Socket.IO, and MongoDB**, TrackSphere enables real-time GPS tracking, automated delay predictions, fleet management, emergency SOS alerts, and live customer updates.
+
+---
+
+### 🌐 **Live Website Link**
+👉 **[https://tracksphere-api.onrender.com](https://tracksphere-api.onrender.com)**
+
+🔑 **Demo Credentials:**
+- **System Admin**: `admin@tracksphere.com` / `password123`
+- **Master Driver**: `driver@tracksphere.com` / `password123`
+- **Customer**: `customer@tracksphere.com` / `password123`
+
+---
+
+## 🖼️ Application Screenshots & Interface
+
+| 🏠 **Landing & Public Tracking** | 👑 **Admin Control Panel** |
+| :---: | :---: |
+| ![Home Dashboard](docs/screenshots/home_dashboard.png) | ![Admin Panel](docs/screenshots/admin_panel.png) |
+| *Real-time shipment lookup & interactive map visualization* | *Fleet status monitoring, SOS alerts & analytics dashboard* |
+
+| 🚚 **Driver Portal** | 📦 **Live Package Tracking** |
+| :---: | :---: |
+| ![Driver Portal](docs/screenshots/driver_portal.png) | ![Live Tracking](docs/screenshots/live_tracking.png) |
+| *Job navigation, route checklist & Voice SOS trigger* | *Step-by-step progress timeline & dynamic ETA updates* |
 
 ---
 
@@ -108,7 +133,7 @@ ADMIN_PHONE=+919894965291
 EMAIL_USER=your_email@gmail.com
 EMAIL_PASS=your_app_password
 EMAIL_FROM=your_email@gmail.com
-ADMIN_EMAIL=admin@trackflow.com
+ADMIN_EMAIL=admin@tracksphere.com
 ```
 
 #### **Frontend (`client/.env`)**
@@ -173,7 +198,7 @@ npm run seed
 
 ## 🤝 Contributing
 
-Contributions are welcome! If you'd like to improve TrackFlow:
+Contributions are welcome! If you'd like to improve TrackSphere:
 1. Fork the Project
 2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
 3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
@@ -188,4 +213,4 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 ---
 
-<p center>Made with ❤️ by <a href="https://github.com/kirubasankarij">Kirubasankari J</a></p>
+<p align="center">Made with ❤️ by <a href="https://github.com/kirubasankarij">Kirubasankari J</a></p>

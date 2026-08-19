@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TrackSphere PPT Generator</title>
+    <!-- Include Tailwind for the download page layout -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Include PptxGenJS CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800;900&family=Orbitron:wght@700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #0B1120;
+        }
+        .glass-card {
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+    </style>
+</head>
+<body class="min-h-screen text-white flex flex-col items-center justify-center p-6">
+
+    <!-- Gradient Background Highlights -->
+    <div class="absolute top-20 left-10 w-72 h-72 bg-cyan-500/10 rounded-full blur-3xl animate-pulse"></div>
+    <div class="absolute bottom-20 right-10 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+
+    <div class="glass-card max-w-lg w-full rounded-3xl p-10 text-center shadow-2xl relative z-10">
+        <!-- Success Icon -->
+        <div class="w-20 h-20 bg-cyan-500/10 border border-cyan-400/30 rounded-full flex items-center justify-center mx-auto mb-6 text-cyan-400">
+            <svg class="w-10 h-10 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+            </svg>
+        </div>
+
+        <h1 class="text-3xl font-black mb-3">TrackSphere PPT</h1>
+        <p class="text-gray-400 text-sm mb-8">Your professional slide deck is ready. If the download did not start automatically, please click the button below.</p>
+
+        <!-- Action Button -->
+        <button onclick="generatePPT()" class="w-full py-4 bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 rounded-xl font-bold text-white shadow-lg shadow-cyan-500/20 transform active:scale-95 transition-all duration-200">
+            Download Presentation (.pptx)
+        </button>
+
+        <p class="text-xs text-gray-500 mt-6 font-mono">Powered by PptxGenJS & TrackSphere Design System</p>
+    </div>
+
+    <script>
+        window.onload = function() {
+            // Auto-trigger generation after brief delay to let library load
+            setTimeout(generatePPT, 1000);
+        };
+
+        function generatePPT() {
+            let pptx = new pptxgen();
+
+            // Configure Master Layout
+            pptx.layout = 'LAYOUT_16x9';
+
+            // Common Slide Theme Colors
+            const BG_COLOR = '0B1120';
+            const PRIMARY_COLOR = '22D3EE';
+            const SECONDARY_COLOR = '818CF8';
+            const WHITE_COLOR = 'FFFFFF';
+            const GRAY_COLOR = '9CA3AF';
+            const DARK_ACCENT = '1E293B';
+
+            // ----------------------------------------------------
+            // SLIDE 1: TITLE SLIDE
+            // ----------------------------------------------------
+            let slide1 = pptx.addSlide();
+            slide1.background = { color: BG_COLOR };
+
+            // Decorative top-right accent shape
+            slide1.addShape(pptx.shapes.RECTANGLE, { 
+                x: 10.0, y: 0, w: 3.3, h: 7.5, 
+                fill: { color: SECONDARY_COLOR, transparency: 85 } 
+            });
+            slide1.addShape(pptx.shapes.RIGHT_TRIANGLE, { 
+                x: 9.0, y: 0, w: 2.0, h: 7.5, 
+                fill: { color: PRIMARY_COLOR, transparency: 90 },
+                flipH: true
+            });
+
+            // Category Badge
+            slide1.addText("PROJECT PRESENTATION", {
+                x: 1.0, y: 1.8, w: 8.0, h: 0.4,
+                fontSize: 12,
+                bold: true,
+                color: PRIMARY_COLOR,
+                fontFace: 'Arial',
+                characterSpacing: 2
+            });
+
+            // Main Title
+            slide1.addText("TrackSphere", {
+                x: 0.95, y: 2.2, w: 8.0, h: 1.2,
+                fontSize: 54,
+                bold: true,
+                color: WHITE_COLOR,
+                fontFace: 'Arial'
+            });
+
+            // Subtitle
+            slide1.addText("AI-Powered Real-Time Shipment Tracking Platform", {
+                x: 1.0, y: 3.4, w: 8.0, h: 0.6,
+                fontSize: 18,
+                color: PRIMARY_COLOR,
+                fontFace: 'Arial'
+            });
+
+            // Description
+            slide1.addText("Optimize your shipment flow with AI-based delay prediction and real-time visualization. Track, route, and deliver with next-gen logistics intelligence.", {
+                x: 1.0, y: 4.1, w: 7.5, h: 0.8,
+                fontSize: 12,
+                color: GRAY_COLOR,
+                fontFace: 'Arial'
+            });
+
+            // Footer / Presenter Info
+            slide1.addText("Developer: Kirubasankari J  |  Date: June 2026", {
+                x: 1.0, y: 6.2, w: 8.0, h: 0.4,
+                fontSize: 11,
+                color: GRAY_COLOR,
+                fontFace: 'Arial'
+            });
+
+
+            // ----------------------------------------------------
+            // SLIDE 2: IDEA DESCRIPTION
+            // ----------------------------------------------------
+            let slide2 = pptx.addSlide();
+            slide2.background = { color: BG_COLOR };
+
+            // Title
+            slide2.addText("Idea Description", {
+                x: 0.8, y: 0.5, w: 10.0, h: 0.6,
+                fontSize: 24,
+                bold: true,
+                color: PRIMARY_COLOR,
+                fontFace: 'Arial'
+            });
+
+            // Description intro
+            slide2.addText("TrackSphere is an end-to-end intelligent shipment tracking platform bridging real-time location mapping, predictive analysis, and secure confirmation.", {
+                x: 0.8, y: 1.1, w: 11.7, h: 0.6,
+                fontSize: 13,
+                color: WHITE_COLOR,
+                fontFace: 'Arial'
+            });
+
+            // Column 1: The Problem
+            slide2.addShape(pptx.shapes.ROUNDED_RECTANGLE, {
+                x: 0.8, y: 1.8, w: 5.6, h: 4.6,
+                fill: { color: DARK_ACCENT, transparency: 30 },
+                line: { color: 'EF4444', width: 1.5 }
+            });
+            slide2.addText("❌ The Logistics Problem", {
+                x: 1.1, y: 2.0, w: 5.0, h: 0.4,
+                fontSize: 16,
+                bold: true,
+                color: 'EF4444',
+                fontFace: 'Arial'
+            });
+            slide2.addText(
+                "• Blind Spots: Customers and fleet managers lack real-time geographical cargo tracking.\n\n" +
+                "• Unanticipated Delays: No smart warning system for weather or traffic hazards.\n\n" +
+                "• Fuel & Route Inefficiencies: Manual tracking without dynamic optimal routing.\n\n" +
+                "• Security Risks: Vulnerable delivery hand-offs lacking strong recipient verification.",
+                {
+                    x: 1.1, y: 2.6, w: 5.0, h: 3.5,
+                    fontSize: 11,
+                    color: GRAY_COLOR,
+                    fontFace: 'Arial',
+                    lineSpacing: 18
+                }
+            );
+
+            // Column 2: The Solution
+            slide2.addShape(pptx.shapes.ROUNDED_RECTANGLE, {
+                x: 6.9, y: 1.8, w: 5.6, h: 4.6,
+                fill: { color: DARK_ACCENT, transparency: 30 },
+                line: { color: PRIMARY_COLOR, width: 1.5 }
+            });
+            slide2.addText("✅ The TrackSphere Solution", {
+                x: 7.2, y: 2.0, w: 5.0, h: 0.4,
+                fontSize: 16,
+                bold: true,
+                color: PRIMARY_COLOR,
+                fontFace: 'Arial'
+            });
+            slide2.addText(
+                "• Real-Time Mapping: Live MapTiler interactive visual tracking.\n\n" +
+                "• AI-Powered ETAs: Regression models to predict potential delivery delays.\n\n" +
+                "• Smart Optimization: Auto-calculates fuel-efficient path coordinates.\n\n" +
+                "• Secure Delivery: Role-based OTP drop-off validation check.",
+                {
+                    x: 7.2, y: 2.6, w: 5.0, h: 3.5,
+                    fontSize: 11,
+                    color: GRAY_COLOR,
+                    fontFace: 'Arial',
+                    lineSpacing: 18
+                }
+            );
+
+
+            // ----------------------------------------------------
+            // SLIDE 3: PLANNED TECHNOLOGIES & TOOLS
+            // ----------------------------------------------------
+            let slide3 = pptx.addSlide();
+            slide3.background = { color: BG_COLOR };
+
+            slide3.addText("Planned Technologies & Tools", {
+                x: 0.8, y: 0.5, w: 10.0, h: 0.6,
+                fontSize: 24,
+                bold: true,
+                color: PRIMARY_COLOR,
+                fontFace: 'Arial'
+            });
+
+            // 4 Grid boxes for layers
+            const techGrid = [
+                {
+                    title: "Frontend Stack",
+                    color: PRIMARY_COLOR,
+                    x: 0.8, y: 1.3, w: 5.6, h: 2.3,
+                    items: "• React.js (Vite) - Highly responsive components\n• TailwindCSS - Clean glassmorphic interfaces\n• MapTiler SDK - Interactive path mapping\n• Socket.io Client - Real-time client updates"
+                },
+                {
+                    title: "Backend Stack",
+                    color: SECONDARY_COLOR,
+                    x: 6.9, y: 1.3, w: 5.6, h: 2.3,
+                    items: "• Node.js & Express.js - Rest API handlers\n• Socket.io - WebSockets event engine\n• JWT - Secure role-based route guard headers\n• Bull Queue - Managed background task jobs"
+                },
+                {
+                    title: "Database & Queue Cache",
+                    color: '34D399',
+                    x: 0.8, y: 3.9, w: 5.6, h: 2.3,
+                    items: "• MongoDB Atlas - Flexible NoSQL document schemas\n• Redis Cache - Powering background queues & tasks"
+                },
+                {
+                    title: "Third-Party Services",
+                    color: 'FB923C',
+                    x: 6.9, y: 3.9, w: 5.6, h: 2.3,
+                    items: "• Twilio - Transactional SMS status messages\n• SendGrid - High-deliverability system mail templates\n• Firebase FCM - Instant web/mobile push alerts"
+                }
+            ];
+
+            techGrid.forEach(grid => {
+                slide3.addShape(pptx.shapes.ROUNDED_RECTANGLE, {
+                    x: grid.x, y: grid.y, w: grid.w, h: grid.h,
+                    fill: { color: DARK_ACCENT, transparency: 40 },
+                    line: { color: grid.color, width: 1 }
+                });
+
+                slide3.addText(grid.title, {
+                    x: grid.x + 0.3, y: grid.y + 0.2, w: grid.w - 0.6, h: 0.3,
+                    fontSize: 14,
+                    bold: true,
+                    color: grid.color,
+                    fontFace: 'Arial'
+                });
+
+                slide3.addText(grid.items, {
+                    x: grid.x + 0.3, y: grid.y + 0.6, w: grid.w - 0.6, h: grid.h - 0.8,
+                    fontSize: 11,
+                    color: GRAY_COLOR,
+                    fontFace: 'Arial',
+                    lineSpacing: 8
+                });
+            });
+
+
+            // ----------------------------------------------------
+            // SLIDE 4: IMPACT ON USERS
+            // ----------------------------------------------------
+            let slide4 = pptx.addSlide();
+            slide4.background = { color: BG_COLOR };
+
+            slide4.addText("Impact on Users & Business", {
+                x: 0.8, y: 0.5, w: 10.0, h: 0.6,
+                fontSize: 24,
+                bold: true,
+                color: PRIMARY_COLOR,
+                fontFace: 'Arial'
+            });
+
+            // 3 columns for users + 1 side box for metrics
+            const users = [
+                {
+                    title: "👤 Customers",
+                    color: PRIMARY_COLOR,
+                    x: 0.8, y: 1.4, w: 3.6, h: 5.0,
+                    text: "• Full Transparency: Visual tracking on map.\n\n• Smart Alerts: Direct SMS/Email updates about delay status.\n\n• High Security: Verification of parcel release via unique recipient OTP."
+                },
+                {
+                    title: "🚛 Drivers",
+                    color: 'FB923C',
+                    x: 4.8, y: 1.4, w: 3.6, h: 5.0,
+                    text: "• Clean Directives: Assigned route directions visually shown.\n\n• Quick Reports: Built-in SOS emergency trigger.\n\n• Track Logs: Record fuel and active hours metrics easily."
+                },
+                {
+                    title: "🖥️ Administrators",
+                    color: SECONDARY_COLOR,
+                    x: 8.8, y: 1.4, w: 3.7, h: 5.0,
+                    text: "• Central Operations: Global active shipment overview map.\n\n• Command Center: Add drivers, assign cargo, set profiles.\n\n• Analytics Dashboard: AI-calculated logistics stats."
+                }
+            ];
+
+            users.forEach(u => {
+                slide4.addShape(pptx.shapes.ROUNDED_RECTANGLE, {
+                    x: u.x, y: u.y, w: u.w, h: u.h,
+                    fill: { color: DARK_ACCENT, transparency: 40 },
+                    line: { color: u.color, width: 1 }
+                });
+
+                slide4.addText(u.title, {
+                    x: u.x + 0.2, y: u.y + 0.3, w: u.w - 0.4, h: 0.4,
+                    fontSize: 15,
+                    bold: true,
+                    color: u.color,
+                    fontFace: 'Arial'
+                });
+
+                slide4.addText(u.text, {
+                    x: u.x + 0.2, y: u.y + 0.8, w: u.w - 0.4, h: u.h - 1.0,
+                    fontSize: 10.5,
+                    color: GRAY_COLOR,
+                    fontFace: 'Arial',
+                    lineSpacing: 12
+                });
+            });
+
+
+            // ----------------------------------------------------
+            // SLIDE 5: APPROACH TOWARDS DEVELOPMENT
+            // ----------------------------------------------------
+            let slide5 = pptx.addSlide();
+            slide5.background = { color: BG_COLOR };
+
+            slide5.addText("Approach Towards Development", {
+                x: 0.8, y: 0.5, w: 10.0, h: 0.6,
+                fontSize: 24,
+                bold: true,
+                color: PRIMARY_COLOR,
+                fontFace: 'Arial'
+            });
+
+            // Architecture outline left
+            slide5.addText("Development Strategy & Architecture", {
+                x: 0.8, y: 1.2, w: 5.5, h: 0.4,
+                fontSize: 16,
+                bold: true,
+                color: WHITE_COLOR,
+                fontFace: 'Arial'
+            });
+
+            slide5.addText(
+                "• Agile Methodology: Iterative implementation of schemas and visual dashboard flows.\n\n" +
+                "• Monorepo structure: Managed codebase organizing Client, Server and common shared code modules in a single repo structure.\n\n" +
+                "• Queue-Based Workers: Offloads notifications and location analysis to background Bull-Redis queue structures to avoid main thread latency.\n\n" +
+                "• Secure-First Core: Strictly enforces JWT role authorization guards, sanitizing paths, and OTP checks at point of delivery.",
+                {
+                    x: 0.8, y: 1.7, w: 5.5, h: 4.8,
+                    fontSize: 11,
+                    color: GRAY_COLOR,
+                    fontFace: 'Arial',
+                    lineSpacing: 16
+                }
+            );
+
+            // Architecture Diagram right using shapes
+            const diagX = 7.0;
+            slide5.addShape(pptx.shapes.ROUNDED_RECTANGLE, { x: diagX, y: 1.5, w: 5.5, h: 1.2, fill: { color: DARK_ACCENT }, line: { color: PRIMARY_COLOR, width: 1 } });
+            slide5.addText("Client Side (React / MapTiler SDK / WebSockets)", { x: diagX + 0.1, y: 1.8, w: 5.3, h: 0.6, fontSize: 11, bold: true, color: WHITE_COLOR, align: 'center', fontFace: 'Arial' });
+
+            // Arrow down
+            slide5.addText("↓ HTTP / WebSockets", { x: diagX, y: 2.8, w: 5.5, h: 0.3, fontSize: 10, color: PRIMARY_COLOR, align: 'center', fontFace: 'Arial' });
+
+            slide5.addShape(pptx.shapes.ROUNDED_RECTANGLE, { x: diagX, y: 3.2, w: 5.5, h: 1.4, fill: { color: DARK_ACCENT }, line: { color: SECONDARY_COLOR, width: 1 } });
+            slide5.addText("Application Server (Express.js / Socket.io)\nQueue Workers (Bull / Redis Queue Engine)", { x: diagX + 0.1, y: 3.5, w: 5.3, h: 0.8, fontSize: 11, bold: true, color: WHITE_COLOR, align: 'center', fontFace: 'Arial' });
+
+            // Arrow down
+            slide5.addText("↓ Database Access & Service APIs", { x: diagX, y: 4.7, w: 5.5, h: 0.3, fontSize: 10, color: PRIMARY_COLOR, align: 'center', fontFace: 'Arial' });
+
+            // Double box at bottom
+            slide5.addShape(pptx.shapes.ROUNDED_RECTANGLE, { x: diagX, y: 5.1, w: 2.6, h: 1.2, fill: { color: DARK_ACCENT }, line: { color: '34D399', width: 1 } });
+            slide5.addText("MongoDB Atlas\n(Data persistence)", { x: diagX + 0.1, y: 5.4, w: 2.4, h: 0.6, fontSize: 10, bold: true, color: WHITE_COLOR, align: 'center', fontFace: 'Arial' });
+
+            slide5.addShape(pptx.shapes.ROUNDED_RECTANGLE, { x: diagX + 2.9, y: 5.1, w: 2.6, h: 1.2, fill: { color: DARK_ACCENT }, line: { color: 'FB923C', width: 1 } });
+            slide5.addText("External APIs\n(Twilio, SendGrid, FCM)", { x: diagX + 3.0, y: 5.4, w: 2.4, h: 0.6, fontSize: 10, bold: true, color: WHITE_COLOR, align: 'center', fontFace: 'Arial' });
+
+
+            // ----------------------------------------------------
+            // SLIDE 6: COMPLETE DEVELOPMENT ROADMAP
+            // ----------------------------------------------------
+            let slide6 = pptx.addSlide();
+            slide6.background = { color: BG_COLOR };
+
+            slide6.addText("Complete Development Roadmap", {
+                x: 0.8, y: 0.5, w: 10.0, h: 0.6,
+                fontSize: 24,
+                bold: true,
+                color: PRIMARY_COLOR,
+                fontFace: 'Arial'
+            });
+
+            // Roadmap steps along a timeline
+            const steps = [
+                { num: "01", title: "Foundation", desc: "Monorepo structure set up, MongoDB connection and authentication scripts.", x: 0.8 },
+                { num: "02", title: "Shipment Core", desc: "Creation of cargo lifecycle, track maps, state transition endpoints.", x: 2.7 },
+                { num: "03", title: "Driver Panel", desc: "Driver route view interactive maps, customer OTP trigger.", x: 4.6 },
+                { num: "04", title: "Admin Portal", desc: "Fleet-wide dashboard, global statistics analytics widgets.", x: 6.5 },
+                { num: "05", title: "Worker Queues", desc: "Bull background jobs config, Twilio SMS and SendGrid integration.", x: 8.4 },
+                { num: "06", title: "UX Polish", desc: "Dynamic interactive pages design, CSS transition assets, and tests.", x: 10.3 }
+            ];
+
+            // Horizontal line for timeline
+            slide6.addShape(pptx.shapes.LINE, { x: 0.8, y: 3.5, w: 11.5, h: 0, line: { color: SECONDARY_COLOR, width: 2 } });
+
+            steps.forEach(step => {
+                // Circle on timeline
+                slide6.addShape(pptx.shapes.OVAL, { x: step.x + 0.8, y: 3.3, w: 0.4, h: 0.4, fill: { color: PRIMARY_COLOR } });
+
+                // Step box above or below
+                const boxY = (parseInt(step.num) % 2 === 0) ? 3.9 : 1.3;
+
+                slide6.addShape(pptx.shapes.ROUNDED_RECTANGLE, {
+                    x: step.x, y: boxY, w: 2.0, h: 1.8,
+                    fill: { color: DARK_ACCENT, transparency: 40 },
+                    line: { color: SECONDARY_COLOR, width: 1 }
+                });
+
+                slide6.addText(step.num, {
+                    x: step.x + 0.1, y: boxY + 0.1, w: 1.8, h: 0.3,
+                    fontSize: 14,
+                    bold: true,
+                    color: PRIMARY_COLOR,
+                    fontFace: 'Arial'
+                });
+
+                slide6.addText(step.title, {
+                    x: step.x + 0.1, y: boxY + 0.4, w: 1.8, h: 0.3,
+                    fontSize: 11,
+                    bold: true,
+                    color: WHITE_COLOR,
+                    fontFace: 'Arial'
+                });
+
+                slide6.addText(step.desc, {
+                    x: step.x + 0.1, y: boxY + 0.7, w: 1.8, h: 1.0,
+                    fontSize: 9,
+                    color: GRAY_COLOR,
+                    fontFace: 'Arial',
+                    lineSpacing: 8
+                });
+            });
+
+
+            // ----------------------------------------------------
+            // SLIDE 7: RESOURCES & REFERENCES
+            // ----------------------------------------------------
+            let slide7 = pptx.addSlide();
+            slide7.background = { color: BG_COLOR };
+
+            slide7.addText("Resources and References", {
+                x: 0.8, y: 0.5, w: 10.0, h: 0.6,
+                fontSize: 24,
+                bold: true,
+                color: PRIMARY_COLOR,
+                fontFace: 'Arial'
+            });
+
+            // 3 boxes for docs, services, and reference notes
+            const resources = [
+                {
+                    title: "📘 Official Documentation",
+                    color: PRIMARY_COLOR,
+                    x: 0.8, y: 1.4, w: 3.6, h: 5.0,
+                    list: [
+                        "React: react.dev",
+                        "NodeJS: nodejs.org/en/docs",
+                        "Express: expressjs.com",
+                        "MongoDB: mongodb.com/docs",
+                        "Socket.io: socket.io/docs/v4",
+                        "Redis / Bull: docs.bullmq.io",
+                        "MapTiler SDK: docs.maptiler.com"
+                    ]
+                },
+                {
+                    title: "⚙️ Integrated Services",
+                    color: SECONDARY_COLOR,
+                    x: 4.8, y: 1.4, w: 3.6, h: 5.0,
+                    list: [
+                        "Twilio (SMS Alerts API)",
+                        "SendGrid (SMTP / Email Node)",
+                        "Firebase FCM (Push System)",
+                        "JSON Web Token (JWT Auth)",
+                        "TailwindCSS (Style system)"
+                    ]
+                },
+                {
+                    title: "📚 Academic & Learning Refs",
+                    color: '34D399',
+                    x: 8.8, y: 1.4, w: 3.7, h: 5.0,
+                    list: [
+                        "Real-time WebSockets setup architectures",
+                        "NoSQL modeling & indexes (MongoDB M001)",
+                        "Regression logic (ETA delay calculator)",
+                        "Dijkstra algorithm (Routing paths calculations)",
+                        "TOTP Standard RFC 6238 protocols (OTP verification)"
+                    ]
+                }
+            ];
+
+            resources.forEach(r => {
+                slide7.addShape(pptx.shapes.ROUNDED_RECTANGLE, {
+                    x: r.x, y: r.y, w: r.w, h: r.h,
+                    fill: { color: DARK_ACCENT, transparency: 40 },
+                    line: { color: r.color, width: 1 }
+                });
+
+                slide7.addText(r.title, {
+                    x: r.x + 0.2, y: r.y + 0.3, w: r.w - 0.4, h: 0.4,
+                    fontSize: 15,
+                    bold: true,
+                    color: r.color,
+                    fontFace: 'Arial'
+                });
+
+                // Convert list array to string with line breaks
+                const listText = r.list.map(item => `• ${item}\n\n`).join("");
+
+                slide7.addText(listText, {
+                    x: r.x + 0.2, y: r.y + 0.8, w: r.w - 0.4, h: r.h - 1.0,
+                    fontSize: 10.5,
+                    color: GRAY_COLOR,
+                    fontFace: 'Arial',
+                    lineSpacing: 10
+                });
+            });
+
+            // Generate/Save the PPTX file
+            pptx.writeFile({ fileName: 'TrackSphere_Presentation.pptx' });
+        }
+    </script>
+</body>
+</html>

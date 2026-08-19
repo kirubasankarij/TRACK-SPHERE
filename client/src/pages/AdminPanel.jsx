@@ -243,7 +243,7 @@ const AdminPanel = () => {
   const [activeSOS, setActiveSOS] = useState(null);
 
   useEffect(() => {
-    const socket = socketIO(import.meta.env.VITE_API_URL || 'http://localhost:5000');
+    const socket = socketIO(import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000');
     
     socket.on('sosAlert', (alertData) => {
         console.log('RECEIVED SOS ALERT:', alertData);

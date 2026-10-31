@@ -511,7 +511,7 @@ const DriverPanel = () => {
                             vehiclePlate: 'TN-01-AX-1234',
                             alertType: alert.type,
                             issueType: alert.type === 'drowsy'
-                                ? '🚨 Driver Drowsiness Alert (Eyes Closed >3s)'
+                                ? '🚨 Driver Drowsiness Alert (Eyes Closed >30s)'
                                 : alert.type === 'seat-absent'
                                 ? '🚪 Driver Moved Away From Seat Alert (>5 min)'
                                 : '📱 Driver Distraction Alert',

@@ -1,6 +1,7 @@
 import os
 import cv2
 import math
+import time
 import numpy as np
 import torch
 from torchvision import transforms
@@ -58,10 +59,10 @@ def run_live_inference(model_path="export/drowsiness_model.pt"):
         print("❌ Error: Could not access camera.")
         return
         
-    closed_counter = 0
+    closed_start_time = None
     ear_threshold = 0.20
     
-    print("🟢 Live Driver Monitoring Active. Press 'q' or ESC to exit.")
+    print("🟢 Live Driver Monitoring Active (Alert at 30s continuous eye closure). Press 'q' or ESC to exit.")
     
     while cap.isOpened():
         ret, frame = cap.read()
@@ -99,14 +100,19 @@ def run_live_inference(model_path="export/drowsiness_model.pt"):
                     for p in right_eye:
                         cv2.circle(frame, (int(p[0]), int(p[1])), 2, (0, 255, 0), -1)
                         
-        # Evaluate Eye Status
+        # Evaluate Eye Status with 30-second continuous closure threshold
         if current_ear < ear_threshold:
-            closed_counter += 1
-            if closed_counter >= 15: # ~1.5 sec
-                status_str = "🚨 DROWSINESS ALERT! (EYES CLOSED)"
+            if closed_start_time is None:
+                closed_start_time = time.time()
+            elapsed_closed = time.time() - closed_start_time
+            if elapsed_closed >= 30.0:
+                status_str = f"🚨 DROWSINESS ALERT! EYES CLOSED >30s ({elapsed_closed:.1f}s)"
                 status_color = (0, 0, 255)
+            else:
+                status_str = f"EYES CLOSED ({elapsed_closed:.1f}s / 30.0s)"
+                status_color = (0, 165, 255) # Warning Amber
         else:
-            closed_counter = 0
+            closed_start_time = None
             
         # Draw UI Overlay on frame
         cv2.rectangle(frame, (10, 10), (w - 10, 80), (0, 0, 0), -1)

@@ -32,6 +32,8 @@ const DriverSafetyCamera = ({ onSafetyAlert }) => {
     const isAlertActiveRef = useRef(false);
     const closedFrameCountRef = useRef(0);
     const absentFrameCountRef = useRef(0);
+    const eyeClosedStartTimeRef = useRef(null);
+    const absentStartTimeRef = useRef(null);
     const blinkCountRef = useRef(0);
     const wasEyeClosedRef = useRef(false);
     const lastUiUpdateRef = useRef(0);
@@ -183,8 +185,12 @@ const DriverSafetyCamera = ({ onSafetyAlert }) => {
         setIsSimulating(false);
         closedFrameCountRef.current = 0;
         absentFrameCountRef.current = 0;
+        eyeClosedStartTimeRef.current = null;
+        absentStartTimeRef.current = null;
         isAlertActiveRef.current = false;
         faceResultsRef.current = null;
+        setClosedDurationSec(0);
+        setAbsentDurationSec(0);
     };
 
     // Automatic Alert Dispatch to Admin & Safety Log
@@ -207,7 +213,7 @@ const DriverSafetyCamera = ({ onSafetyAlert }) => {
 
         if (!msg) {
             if (type === 'drowsy') {
-                msg = '🚨 AUTOMATIC AI ALERT: Driver Eyes CLOSED for >3s detected! Admin Mobile & Portal notified immediately.';
+                msg = '🚨 AUTOMATIC AI ALERT: Driver Eyes CLOSED for >30s detected! Admin Mobile & Portal notified immediately.';
                 penalty = 25;
             } else if (type === 'seat-absent') {
                 msg = '🚪 AUTOMATIC AI ALERT: Driver MOVED AWAY FROM SEAT (>5 min)! Admin Mobile & Portal notified immediately.';
@@ -395,25 +401,32 @@ const DriverSafetyCamera = ({ onSafetyAlert }) => {
                     absentFrameCountRef.current = 0;
                 }
 
-                // 2. Blink Tracking & Automatic Eye Closure Duration Tracking (>3s threshold)
+                // 2. Blink Tracking & Automatic Eye Closure Duration Tracking (>30s threshold)
+                let currentClosedSec = 0;
                 if (isEyeClosedDetected && !isDriverAwayDetected) {
                     if (!wasEyeClosedRef.current) {
                         wasEyeClosedRef.current = true;
                     }
+                    if (!eyeClosedStartTimeRef.current) {
+                        eyeClosedStartTimeRef.current = Date.now();
+                    }
+                    currentClosedSec = (Date.now() - eyeClosedStartTimeRef.current) / 1000;
                     closedFrameCountRef.current += 1;
 
-                    if (closedFrameCountRef.current >= 10 && statusRef.current !== 'drowsy') {
-                        dispatchAutomaticAlert('drowsy', '🚨 AUTOMATIC AI DETECTED: Driver Eyes CLOSED for >3 seconds! Emergency alert sent to Admin Mobile & Admin Portal.');
+                    // Trigger alert ONLY after eyes remain continuously closed for >= 30 seconds
+                    if (currentClosedSec >= 30.0 && statusRef.current !== 'drowsy') {
+                        dispatchAutomaticAlert('drowsy', '🚨 AUTOMATIC AI DETECTED: Driver Eyes CLOSED for >30 seconds! Emergency alert sent to Admin Mobile & Admin Portal.');
                     }
                 } else {
                     if (wasEyeClosedRef.current) {
                         wasEyeClosedRef.current = false;
                         blinkCountRef.current += 1;
                     }
-                    if (closedFrameCountRef.current >= 10 && statusRef.current === 'drowsy') {
+                    if (statusRef.current === 'drowsy') {
                         setStatus('vigilant');
                         toast.success('🟢 AUTOMATIC AI UPDATE: Driver eyes RE-OPENED. Vigilant state restored.');
                     }
+                    eyeClosedStartTimeRef.current = null;
                     closedFrameCountRef.current = 0;
                 }
 
@@ -426,12 +439,12 @@ const DriverSafetyCamera = ({ onSafetyAlert }) => {
                     setAvgEar(currentAvgEAR);
                     setEyeStateText(isDriverAwayDetected ? 'AWAY FROM SEAT' : isEyeClosedDetected ? 'CLOSED' : 'OPEN');
                     setBlinkCount(blinkCountRef.current);
-                    setClosedDurationSec(parseFloat((closedFrameCountRef.current / 15.0).toFixed(1)));
+                    setClosedDurationSec(parseFloat(currentClosedSec.toFixed(1)));
                     setAbsentDurationSec(parseFloat((absentFrameCountRef.current / 15.0).toFixed(1)));
                 }
 
                 // Canvas Graphic Overlay Drawing
-                const isDrowsy = statusRef.current === 'drowsy' || isEyeClosedDetected;
+                const isDrowsyAlert = statusRef.current === 'drowsy';
                 const isSeatAbsent = statusRef.current === 'seat-absent' || isDriverAwayDetected;
 
                 if (isSeatAbsent) {
@@ -444,7 +457,7 @@ const DriverSafetyCamera = ({ onSafetyAlert }) => {
                     ctx.font = 'bold 13px monospace';
                     ctx.fillText(`🚪 AUTOMATIC AI: DRIVER MOVED AWAY FROM SEAT (>5 MINS)!`, width * 0.05, height * 0.86);
                     ctx.fillText(`⚠️ ADMIN NOTIFIED VIA SMS & PORTAL | UNATTENDED VEHICLE ALERT`, width * 0.05, height * 0.93);
-                } else if (!isDrowsy) {
+                } else if (!isEyeClosedDetected && !isDrowsyAlert) {
                     // Green Face Box
                     ctx.strokeStyle = '#10B981';
                     ctx.lineWidth = 3;
@@ -475,23 +488,29 @@ const DriverSafetyCamera = ({ onSafetyAlert }) => {
                     ctx.fillText(`AUTOMATIC AI: DRIVER IN SEAT | EYES OPEN | EAR: ${currentAvgEAR.toFixed(2)}`, width * 0.08, height * 0.86);
                     ctx.fillText(`TOTAL BLINKS: ${blinkCountRef.current} | GAZE: FOCUSED (0° DEVIATION)`, width * 0.08, height * 0.93);
                 } else {
-                    ctx.strokeStyle = '#EF4444';
-                    ctx.lineWidth = 5;
+                    const isOver30s = currentClosedSec >= 30.0 || isDrowsyAlert;
+                    ctx.strokeStyle = isOver30s ? '#EF4444' : '#F59E0B';
+                    ctx.lineWidth = isOver30s ? 5 : 3;
                     ctx.strokeRect(width * 0.24, height * 0.14, width * 0.52, height * 0.64);
 
                     const lx = width * 0.38;
                     const rx = width * 0.62;
                     const ey = height * 0.36;
 
-                    ctx.strokeStyle = '#EF4444';
+                    ctx.strokeStyle = isOver30s ? '#EF4444' : '#F59E0B';
                     ctx.lineWidth = 4;
                     ctx.beginPath(); ctx.moveTo(lx - 18, ey); ctx.lineTo(lx + 18, ey); ctx.stroke();
                     ctx.beginPath(); ctx.moveTo(rx - 18, ey); ctx.lineTo(rx + 18, ey); ctx.stroke();
 
-                    ctx.fillStyle = '#EF4444';
+                    ctx.fillStyle = isOver30s ? '#EF4444' : '#F59E0B';
                     ctx.font = 'bold 13px monospace';
-                    ctx.fillText(`🚨 AUTOMATIC AI: EYES CLOSED DETECTED! (EAR: ${currentAvgEAR.toFixed(2)})`, width * 0.06, height * 0.86);
-                    ctx.fillText(`⚠️ ADMIN NOTIFIED VIA SOS | CLOSED DURATION: ${(closedFrameCountRef.current / 15.0).toFixed(1)}s`, width * 0.06, height * 0.93);
+                    if (isOver30s) {
+                        ctx.fillText(`🚨 AUTOMATIC AI: EYES CLOSED >30s DETECTED! (EAR: ${currentAvgEAR.toFixed(2)})`, width * 0.06, height * 0.86);
+                        ctx.fillText(`⚠️ ADMIN NOTIFIED VIA SOS | CLOSED DURATION: ${currentClosedSec.toFixed(1)}s`, width * 0.06, height * 0.93);
+                    } else {
+                        ctx.fillText(`⚠️ EYES CLOSED: ${currentClosedSec.toFixed(1)}s / 30.0s (EAR: ${currentAvgEAR.toFixed(2)})`, width * 0.06, height * 0.86);
+                        ctx.fillText(`⏳ CONTINUOUS CLOSURE TIMER | ALERT DISPATCHES AT 30.0s`, width * 0.06, height * 0.93);
+                    }
                 }
             }
             animationFrame = requestAnimationFrame(processVideoFrame);
@@ -519,7 +538,7 @@ const DriverSafetyCamera = ({ onSafetyAlert }) => {
                         </span>
                     </div>
                     <p className="text-xs text-gray-400 font-medium mt-1">
-                        Monitors driver eyes & seat presence live. Automatically dispatches alerts to Admin Mobile & Portal on eye closure or seat absence (&gt;5 min).
+                        Monitors driver eyes &amp; seat presence live. Automatically dispatches alerts to Admin Mobile &amp; Portal on continuous eye closure (&gt;30s) or seat absence (&gt;5 min).
                     </p>
                 </div>
 
@@ -547,7 +566,7 @@ const DriverSafetyCamera = ({ onSafetyAlert }) => {
             <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl flex items-center gap-3 text-xs text-emerald-300">
                 <span className="text-lg">🤖</span>
                 <div>
-                    <span className="font-black">Fully Automatic AI Eye & Seat Presence Active:</span> Eye closure (&gt;3s) or leaving your seat (&gt;5 min) automatically triggers emergency sirens and sends instant alerts to Admin Mobile & Portal!
+                    <span className="font-black">Fully Automatic AI Eye &amp; Seat Presence Active:</span> Continuous eye closure (&gt;30s) or leaving your seat (&gt;5 min) automatically triggers emergency sirens and sends instant alerts to Admin Mobile &amp; Portal!
                 </div>
             </div>
 
@@ -577,8 +596,23 @@ const DriverSafetyCamera = ({ onSafetyAlert }) => {
                     {/* Live Automatic State Badge */}
                     {cameraActive && (
                         <div className="absolute top-4 left-4 z-10 flex items-center gap-2">
-                            <span className={`px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider shadow-lg backdrop-blur ${eyeStateText === 'AWAY FROM SEAT' ? 'bg-amber-600 text-white animate-pulse' : eyeStateText === 'OPEN' ? 'bg-emerald-500/90 text-white' : 'bg-red-600/90 text-white animate-bounce'}`}>
-                                {eyeStateText === 'AWAY FROM SEAT' ? '🚪 DRIVER MOVED AWAY FROM SEAT (>5 MIN)' : eyeStateText === 'OPEN' ? '🟢 DRIVER IN SEAT: EYES OPEN' : '🚨 EYES AUTOMATICALLY DETECTED: CLOSED!'}
+                            <span className={`px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider shadow-lg backdrop-blur ${
+                                eyeStateText === 'AWAY FROM SEAT' 
+                                    ? 'bg-amber-600 text-white animate-pulse' 
+                                    : eyeStateText === 'OPEN' 
+                                    ? 'bg-emerald-500/90 text-white' 
+                                    : status === 'drowsy' || closedDurationSec >= 30.0
+                                    ? 'bg-red-600/90 text-white animate-bounce'
+                                    : 'bg-amber-500/90 text-white'
+                            }`}>
+                                {eyeStateText === 'AWAY FROM SEAT' 
+                                    ? '🚪 DRIVER MOVED AWAY FROM SEAT (>5 MIN)' 
+                                    : eyeStateText === 'OPEN' 
+                                    ? '🟢 DRIVER IN SEAT: EYES OPEN' 
+                                    : status === 'drowsy' || closedDurationSec >= 30.0
+                                    ? '🚨 EYES CLOSED >30s: ADMIN ALERT DISPATCHED!' 
+                                    : `⚠️ EYES CLOSED (${closedDurationSec}s / 30s)`
+                                }
                             </span>
                         </div>
                     )}
@@ -633,7 +667,7 @@ const DriverSafetyCamera = ({ onSafetyAlert }) => {
                         </p>
 
                         <div className="flex items-center justify-between bg-black/40 p-2.5 rounded-xl border border-white/5">
-                            <span className="text-xs font-bold text-gray-300">😴 Force Eyes Closed (&gt;3s)</span>
+                            <span className="text-xs font-bold text-gray-300">😴 Force Eyes Closed (&gt;30s)</span>
                             <button
                                 onClick={() => {
                                     const next = !simulateEyesClosed;
@@ -643,8 +677,7 @@ const DriverSafetyCamera = ({ onSafetyAlert }) => {
                                             setCameraActive(true);
                                             setIsSimulating(true);
                                         }
-                                        toast('😴 Simulating eyes closed (>3s)... Notifying Admin Mobile & Portal!', { icon: '👁️' });
-                                        dispatchAutomaticAlert('drowsy', '🚨 AUTOMATIC AI ALERT: Driver Eyes CLOSED for >3s detected! Emergency Alert dispatched to Admin.');
+                                        toast('😴 Simulating eyes closed... Alert will trigger after 30 seconds of closure!', { icon: '👁️' });
                                     } else {
                                         toast.success('🟢 Eyes opened! Restored to vigilant state.');
                                         setStatus('vigilant');

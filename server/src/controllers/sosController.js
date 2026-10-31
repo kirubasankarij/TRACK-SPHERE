@@ -58,7 +58,7 @@ export const triggerSOS = async (req, res) => {
             location,
             detectedPhrase,
             alertType,
-            issueType: issueType || (alertType === 'drowsy' ? '🚨 Driver Drowsiness Alert (Eyes Closed >3s)' : 'Emergency SOS Triggered'),
+            issueType: issueType || (alertType === 'drowsy' ? '🚨 Driver Drowsiness Alert (Eyes Closed >30s)' : 'Emergency SOS Triggered'),
             timestamp: new Date().toISOString()
         };
 

@@ -71,6 +71,9 @@ const Login = () => {
                 <p className="mt-8 text-center text-sm text-gray-400 font-medium">
                     New to TrackSphere? <Link to="/register" className="text-primary font-bold hover:underline">Create an account</Link>
                 </p>
+                <div className="mt-4 text-center">
+                    <Link to="/portal/customer" className="text-xs font-bold text-cyan-400 hover:text-white transition-colors">📦 Open Demo Customer Portal Gateway</Link>
+                </div>
             </div>
         </div>
     );

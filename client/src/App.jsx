@@ -12,6 +12,7 @@ import Profile from './pages/Profile'
 import DriverPanel from './pages/DriverPanel'
 import AdminLogin from './pages/AdminLogin'
 import DriverLogin from './pages/DriverLogin'
+import CustomerPortal from './pages/CustomerPortal'
 import Support from './pages/Support'
 import CreateShipment from './pages/CreateShipment'
 import ShipmentHistory from './pages/ShipmentHistory'
@@ -37,9 +38,22 @@ const SocketHandler = () => {
         socket.on('newNotification', (notif) => {
             // Check if notification is for this user or if user is admin
             if (user.role === 'admin' && notif.role === 'admin') {
-                toast.error(`🚨 ADMIN: ${notif.message}`, { duration: 6000, position: 'top-right' });
+                toast.error(`🚨 ADMIN: ${notif.message}`, { duration: 8000, position: 'top-right' });
             } else if (user.id === notif.userId || user.email === notif.userId) {
                 toast.error(`⚠️ ${notif.message}`, { duration: 6000, position: 'top-center' });
+            }
+        });
+
+        socket.on('sosAlert', (alertData) => {
+            if (user.role === 'admin') {
+                const phrase = alertData?.detectedPhrase || '';
+                const isDrowsy = alertData?.alertType === 'drowsy' || phrase.toLowerCase().includes('closed');
+                toast.error(
+                    isDrowsy
+                        ? `🚨 DRIVER DROWSINESS ALERT: ${alertData.driverName || 'Driver'} eyes CLOSED (>3s)!`
+                        : `🚨 EMERGENCY SOS: ${alertData.driverName || 'Driver'} triggered emergency!`,
+                    { duration: 10000, position: 'top-right' }
+                );
             }
         });
 
@@ -64,6 +78,9 @@ function App() {
                                 <Route path="/login" element={<Login />} />
                                 <Route path="/login/admin" element={<AdminLogin />} />
                                 <Route path="/login/driver" element={<DriverLogin />} />
+                                <Route path="/login/customer" element={<CustomerPortal />} />
+                                <Route path="/portal/customer" element={<CustomerPortal />} />
+                                <Route path="/customer" element={<CustomerPortal />} />
                                 <Route path="/register" element={<Register />} />
                                 <Route path="/dashboard" element={<Dashboard />} />
                                 <Route path="/track" element={<TrackShipment />} />

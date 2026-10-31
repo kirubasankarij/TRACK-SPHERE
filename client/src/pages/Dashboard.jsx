@@ -5,6 +5,27 @@ import { useAuth } from '../context/AuthContext';
 
 const DEMO_SHIPMENTS = [
     {
+        trackingNumber: 'TF-TN-DEMO', status: 'in-transit',
+        createdAt: new Date(Date.now() - 1 * 86400000).toISOString(),
+        estimatedDelivery: new Date(Date.now() + 4 * 3600000).toISOString(),
+        sender: { name: 'Chennai Tech Hub', address: 'Guindy, Chennai, Tamil Nadu' },
+        receiver: { name: 'You (South Retailers)', address: 'RS Puram, Coimbatore, Tamil Nadu' },
+        packageType: 'electronics', weight: '2.5', deliveryType: 'express',
+        assignedDriver: { name: 'Raj Kumar (Master Driver)', phone: '+91 98765 43210', rating: 4.9 },
+        delayProbability: 35, predictedDelay: 25,
+        aiAnalysis: { reason: 'Approaching Erode sector. Smooth traffic on NH 544.', insight: 'ETA estimated within 4 hours.' }
+    },
+    {
+        trackingNumber: 'TF-DEMO-001', status: 'in-transit',
+        createdAt: new Date(Date.now() - 1 * 86400000).toISOString(),
+        estimatedDelivery: new Date(Date.now() + 6 * 3600000).toISOString(),
+        sender: { name: 'Bengaluru Fulfillment Hub', address: 'Electronic City, Bengaluru, Karnataka' },
+        receiver: { name: 'You', address: 'Anna Nagar, Madurai, Tamil Nadu' },
+        packageType: 'parcel', weight: '3.2', deliveryType: 'express',
+        assignedDriver: { name: 'Raj Kumar (Master Driver)', phone: '+91 98765 43210', rating: 4.9 },
+        delayProbability: 12, predictedDelay: 0
+    },
+    {
         trackingNumber: 'TRK-DEMO-1001', status: 'delivered',
         createdAt: new Date(Date.now() - 7 * 86400000).toISOString(),
         estimatedDelivery: new Date(Date.now() - 2 * 86400000).toISOString(),

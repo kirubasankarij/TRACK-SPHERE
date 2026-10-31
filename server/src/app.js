@@ -28,6 +28,7 @@ import stationRoutes from './routes/stationRoutes.js';
 import supportRoutes from './routes/supportRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
 import sosRoutes from './routes/sosRoutes.js';
+import messageRoutes from './routes/messageRoutes.js';
 import { startDelayScheduler } from './services/delayScheduler.js';
 
 dotenv.config();
@@ -68,6 +69,7 @@ app.use('/api/stations', stationRoutes);
 app.use('/api/support', supportRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/sos', sosRoutes);
+app.use('/api/messages', messageRoutes);
 
 // Network Config Route (to help with mobile QR code connection)
 app.get('/api/config/network', (req, res) => {

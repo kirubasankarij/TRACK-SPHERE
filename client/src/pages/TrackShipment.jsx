@@ -15,14 +15,14 @@ const STATUS_LEGEND = [
     { code: 'delivered', label: 'Delivered', icon: '✅', color: 'bg-accent/10 text-accent border border-accent/20' },
 ];
 
-const DEMO_IDS = ['TF-DEMO-001', 'TF-DEMO-002', 'TF-DEMO-003'];
+const DEMO_IDS = ['TF-TN-DEMO', 'TF-DEMO-001', 'TRK-DEMO-2002', 'TF-DEMO-003'];
 
 const TrackShipment = () => {
     const [searchParams] = useSearchParams();
-    const initialId = searchParams.get('id') || '';
+    const initialId = searchParams.get('id') || 'TF-TN-DEMO';
 
     const [trackingInput, setTrackingInput] = useState(initialId);
-    const [searchId, setSearchId] = useState(initialId || null);
+    const [searchId, setSearchId] = useState(initialId);
     const [copied, setCopied] = useState(false);
     const { shipment, loading, error } = useTracking(searchId);
     const [delayNotifications, setDelayNotifications] = useState([]);
@@ -246,6 +246,30 @@ const TrackShipment = () => {
                                 <p className="text-[10px] text-gray-500 font-black mb-8 tracking-widest uppercase">Telemetry Analysis</p>
                                 
                                 <div className="space-y-6">
+                                    {/* ETA & Confidence Range */}
+                                    <div className="bg-gradient-to-r from-blue-950/60 to-purple-950/40 p-4 rounded-2xl border border-blue-500/20">
+                                        <div className="flex justify-between items-center mb-1.5">
+                                            <span className="text-[10px] font-black text-blue-300 uppercase tracking-widest flex items-center gap-1.5">
+                                                ⏱️ AI Predicted ETA
+                                            </span>
+                                            <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-400/30">
+                                                {shipment.etaConfidence?.confidencePercent || 88}% Confidence
+                                            </span>
+                                        </div>
+                                        <p className="text-xl font-black text-white">
+                                            {shipment.estimatedDelivery ? new Date(shipment.estimatedDelivery).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '3:45 PM'}
+                                            <span className="text-xs text-blue-400 font-bold ml-2">
+                                                (±{shipment.etaConfidence?.marginMinutes || 12} mins)
+                                            </span>
+                                        </p>
+                                        <div className="mt-2 flex items-center justify-between text-[11px] text-gray-400 border-t border-white/5 pt-2">
+                                            <span className="font-bold">Confidence Range:</span>
+                                            <span className="font-black text-blue-200">
+                                                {shipment.etaConfidence?.rangeLabel || '3:33 PM - 3:57 PM'}
+                                            </span>
+                                        </div>
+                                    </div>
+
                                     <div>
                                         <div className="flex justify-between items-center mb-2">
                                             <span className="text-[10px] font-black text-gray-500 uppercase">Delay Prop.</span>
@@ -267,6 +291,48 @@ const TrackShipment = () => {
                                             "{shipment.aiAnalysis?.insight || "Analyzing route telemetry for optimal trajectory..."}"
                                         </p>
                                     </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* 🌱 Green Logistics Score Card */}
+                        <div className="glass-card bg-gradient-to-br from-emerald-950/40 via-ai-card to-emerald-900/10 border-emerald-500/20 shadow-xl relative overflow-hidden">
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-xs font-black text-emerald-400 uppercase tracking-[0.2em] flex items-center gap-1.5">
+                                    🌱 Green Logistics Score
+                                </h3>
+                                <span className="px-2.5 py-1 bg-emerald-500/20 border border-emerald-500/30 rounded-full text-xs font-black text-emerald-300">
+                                    Grade {shipment.greenLogistics?.ecoGrade || 'A+'}
+                                </span>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4 mb-4">
+                                <div className="bg-black/30 p-3 rounded-xl border border-emerald-500/10">
+                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Eco Score</p>
+                                    <p className="text-2xl font-black text-emerald-400">
+                                        {shipment.greenLogistics?.greenScore || 92}<span className="text-xs text-emerald-600 font-normal">/100</span>
+                                    </p>
+                                </div>
+                                <div className="bg-black/30 p-3 rounded-xl border border-emerald-500/10">
+                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Trip CO₂</p>
+                                    <p className="text-2xl font-black text-white">
+                                        {shipment.greenLogistics?.co2EmissionsKg || 4.25}<span className="text-xs text-gray-400 font-bold"> kg</span>
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="space-y-2 text-xs text-emerald-200/80 bg-emerald-500/5 p-3 rounded-xl border border-emerald-500/10">
+                                <div className="flex justify-between items-center">
+                                    <span className="font-bold flex items-center gap-1">🛡️ Route Type:</span>
+                                    <span className="font-black text-emerald-300">Eco-Optimized Route</span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span className="font-bold flex items-center gap-1">💨 CO₂ Saved:</span>
+                                    <span className="font-black text-emerald-400">-{shipment.greenLogistics?.co2SavedKg || 1.85} kg CO₂</span>
+                                </div>
+                                <div className="flex justify-between items-center text-[10px] text-gray-400 pt-1 border-t border-emerald-500/10">
+                                    <span>Tree absorption equivalent:</span>
+                                    <span className="font-bold text-emerald-300">🌳 {shipment.greenLogistics?.treesEquivalent || 0.19} trees/yr</span>
                                 </div>
                             </div>
                         </div>

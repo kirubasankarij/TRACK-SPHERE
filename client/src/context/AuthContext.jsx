@@ -59,6 +59,16 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
+    const quickLogin = async (role = 'customer') => {
+        const credentials = {
+            customer: { email: 'customer@tracksphere.com', password: 'password123' },
+            driver: { email: 'driver@tracksphere.com', password: 'password123' },
+            admin: { email: 'admin@tracksphere.com', password: 'password123' }
+        };
+        const creds = credentials[role] || credentials.customer;
+        return await login(creds.email, creds.password);
+    };
+
     const logout = () => {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
@@ -66,7 +76,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ user, setUser, loading, login, register, logout }}>
+        <AuthContext.Provider value={{ user, setUser, loading, login, quickLogin, register, logout }}>
             {children}
         </AuthContext.Provider>
     );

@@ -13,7 +13,7 @@ router.get('/', authenticate, authorize(['admin']), async (req, res) => {
     try {
         if (process.env.DEMO_MODE === 'true') {
             const { MockDriver } = await import('../models/mocks.js');
-            const drivers = [await MockDriver.findOne()]; 
+            const drivers = await MockDriver.find(); 
             return res.json({ success: true, data: drivers });
         }
         const drivers = await Driver.find().populate('user', 'name email phone');

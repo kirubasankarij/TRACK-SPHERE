@@ -16,8 +16,15 @@ export const useTracking = (shipmentId) => {
             setLoading(true);
             setError(null);
             try {
-                const response = await api.get(`/tracking/${shipmentId}`);
-                setShipment(response.data);
+                const response = await api.get(`/tracking/${shipmentId}`).catch(() => null);
+                if (response?.data) {
+                    setShipment(response.data);
+                } else {
+                    // Check local storage / mock fallback
+                    const saved = JSON.parse(localStorage.getItem('tracksphere_shipments') || '[]');
+                    const found = saved.find(s => s.trackingNumber === shipmentId || s._id === shipmentId);
+                    if (found) setShipment(found);
+                }
                 setLoading(false);
                 socket.emit('joinRoom', shipmentId);
             } catch (err) {
@@ -29,16 +36,54 @@ export const useTracking = (shipmentId) => {
 
         fetchShipment();
 
-        socket.on('statusUpdate', (update) => {
-            setShipment(prev => ({
-                ...prev,
-                status: update.status,
-                history: [...(prev?.history || []), update]
-            }));
-        });
+        const handleStatusUpdate = (update) => {
+            if (update.trackingNumber === shipmentId || update.shipmentId === shipmentId || !update.trackingNumber) {
+                setShipment(prev => {
+                    if (!prev) return prev;
+                    const newHistory = [...(prev.history || [])];
+                    if (update.status && (!newHistory.length || newHistory[newHistory.length - 1].status !== update.status)) {
+                        newHistory.push({
+                            status: update.status,
+                            location: update.location || prev.lastLocation || 'In Transit',
+                            timestamp: new Date(),
+                            details: `Status updated to ${update.status}`
+                        });
+                    }
+                    return {
+                        ...prev,
+                        ...update.shipment,
+                        status: update.status || prev.status,
+                        assignedDriver: update.assignedDriver || prev.assignedDriver,
+                        predictedDelay: update.predictedDelay !== undefined ? update.predictedDelay : prev.predictedDelay,
+                        history: newHistory
+                    };
+                });
+            }
+        };
+
+        const handleLocationUpdate = (locData) => {
+            if (locData.trackingNumber === shipmentId || locData.shipmentId === shipmentId) {
+                setShipment(prev => {
+                    if (!prev) return prev;
+                    const points = prev.routePoints || [];
+                    const newPoint = { lat: locData.lat, lng: locData.lng, timestamp: new Date() };
+                    return {
+                        ...prev,
+                        lastLocation: `${locData.lat.toFixed(4)}, ${locData.lng.toFixed(4)}`,
+                        routePoints: [...points, newPoint]
+                    };
+                });
+            }
+        };
+
+        socket.on('statusUpdate', handleStatusUpdate);
+        socket.on('shipmentUpdated', handleStatusUpdate);
+        socket.on('driverLocationUpdate', handleLocationUpdate);
 
         return () => {
-            socket.off('statusUpdate');
+            socket.off('statusUpdate', handleStatusUpdate);
+            socket.off('shipmentUpdated', handleStatusUpdate);
+            socket.off('driverLocationUpdate', handleLocationUpdate);
         };
     }, [shipmentId]);
 

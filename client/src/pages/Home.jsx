@@ -530,7 +530,7 @@ const Home = () => {
                         title="Customer Portal"
                         desc="Track shipments in real-time, manage delivery addresses, and receive instant status notifications."
                         btn="Enter Customer Portal"
-                        onNavigate={() => navigate('/login')}
+                        onNavigate={() => navigate('/portal/customer')}
                         color="blue"
                         graphic={SpinningCube}
                         badge="Live Tracking"

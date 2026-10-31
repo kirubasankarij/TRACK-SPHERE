@@ -1,71 +1,109 @@
+import mongoose from 'mongoose';
 import SOS from '../models/SOS.js';
 import Driver from '../models/Driver.js';
 import NotificationService from '../services/notificationService.js';
 import { getIO } from '../socket.js';
 
+// In-memory fallback history for DEMO MODE or offline DB
+const demoSOSHistory = [];
+
 export const triggerSOS = async (req, res) => {
     try {
-        const { driverId, location, detectedPhrase } = req.body;
+        let { driverId, location, detectedPhrase, driverName, issueType, details, alertType } = req.body;
 
-        if (!driverId || !location || !detectedPhrase) {
-            return res.status(400).json({ message: 'Missing required SOS information' });
+        detectedPhrase = detectedPhrase || details || issueType || 'Emergency Alert Triggered';
+        alertType = alertType || (detectedPhrase.toLowerCase().includes('closed') || detectedPhrase.toLowerCase().includes('drowsy') ? 'drowsy' : 'sos');
+
+        if (!location || typeof location.lat !== 'number' || typeof location.lng !== 'number') {
+            location = { lat: 13.0827, lng: 80.2707 }; // Default location if missing
         }
 
-        // 1. Save SOS event
-        const sosEvent = new SOS({
-            driver: driverId,
-            location,
-            detectedPhrase
-        });
-        await sosEvent.save();
+        let vehiclePlate = 'TN-01-AX-1234';
+        driverName = driverName || 'Master Driver (Raj Kumar)';
+        let resolvedDriverId = driverId || new mongoose.Types.ObjectId();
 
-        // 2. Fetch driver & vehicle details for the alert
-        const driver = await Driver.findById(driverId).populate('user').populate('vehicle');
-        const driverName = driver?.user?.name || 'Unknown Driver';
-        const vehiclePlate = driver?.vehicle?.plateNumber || 'Unknown Vehicle';
+        const isDbConnected = mongoose.connection.readyState === 1 && process.env.DEMO_MODE !== 'true';
+
+        if (isDbConnected) {
+            try {
+                let driver;
+                if (driverId && mongoose.Types.ObjectId.isValid(driverId)) {
+                    driver = await Driver.findById(driverId).populate('user').populate('vehicle');
+                }
+                if (!driver) {
+                    driver = await Driver.findOne().populate('user').populate('vehicle');
+                }
+                if (driver) {
+                    resolvedDriverId = driver._id;
+                    driverName = driver?.user?.name || driverName;
+                    vehiclePlate = driver?.vehicle?.plateNumber || vehiclePlate;
+                }
+
+                const sosEvent = new SOS({
+                    driver: resolvedDriverId,
+                    location,
+                    detectedPhrase
+                });
+                await sosEvent.save();
+            } catch (dbErr) {
+                console.warn('Could not persist SOS to MongoDB:', dbErr.message);
+            }
+        }
 
         const alertData = {
-            id: sosEvent._id,
+            id: new mongoose.Types.ObjectId().toString(),
             driverName,
+            driverId: resolvedDriverId,
             vehiclePlate,
             location,
             detectedPhrase,
-            timestamp: sosEvent.timestamp
+            alertType,
+            issueType: issueType || (alertType === 'drowsy' ? '🚨 Driver Drowsiness Alert (Eyes Closed >3s)' : 'Emergency SOS Triggered'),
+            timestamp: new Date().toISOString()
         };
 
-        // 3. Emit real-time alert via Socket.io to admins
+        // Add to in-memory history
+        demoSOSHistory.unshift(alertData);
+        if (demoSOSHistory.length > 50) demoSOSHistory.pop();
+
+        // 2. Emit real-time alert via Socket.io to all admins
         const io = getIO();
         if (io) {
             io.emit('sosAlert', alertData);
+            io.emit('driverSafetyAlert', alertData);
+            io.emit('newNotification', {
+                role: 'admin',
+                type: alertType === 'drowsy' ? 'DROWSINESS_ALERT' : 'EMERGENCY_SOS',
+                message: alertType === 'drowsy'
+                    ? `🚨 CRITICAL SAFETY ALERT: Driver ${driverName} - Eyes Closed (>3s) Detected!`
+                    : `🚨 EMERGENCY ALERT: Driver ${driverName} - ${detectedPhrase}`,
+                data: alertData,
+                timestamp: new Date()
+            });
         }
 
-        // 4. Trigger Notifications
-        const adminEmail = process.env.ADMIN_EMAIL || 'admin@trackflow.com';
-        const adminPhone = process.env.ADMIN_PHONE || '+919999999999';
+        // 3. Trigger Notifications (SMS/Email if configured)
+        const adminEmail = process.env.ADMIN_EMAIL || 'admin@tracksphere.com';
+        const adminPhone = process.env.ADMIN_PHONE || '+919894965291';
 
-        // SMS
-        await NotificationService.sendSMS(
-            adminPhone,
-            `EMERGENCY ALERT! Driver ${driverName} (${vehiclePlate}) triggered SOS: "${detectedPhrase}". Location: ${location.lat}, ${location.lng}`
-        );
-
-        // Email
-        await NotificationService.sendEmail(
-            adminEmail,
-            `EMERGENCY: SOS Triggered by ${driverName}`,
-            `Driver: ${driverName}\nVehicle: ${vehiclePlate}\nPhrase: ${detectedPhrase}\nLocation: ${location.lat}, ${location.lng}\nTimestamp: ${sosEvent.timestamp}`
-        );
-
-        // Voice Call
-        await NotificationService.sendVoiceCall(
-            adminPhone,
-            `Attention. Emergency detected from driver ${driverName}. Please check your dashboard immediately.`
-        );
+        try {
+            await NotificationService.sendSMS(
+                adminPhone,
+                `EMERGENCY ALERT! Driver ${driverName} (${vehiclePlate}) alert: "${detectedPhrase}". Location: ${location.lat}, ${location.lng}`
+            );
+            await NotificationService.sendEmail(
+                adminEmail,
+                `EMERGENCY: Safety Alert for ${driverName}`,
+                `Driver: ${driverName}\nVehicle: ${vehiclePlate}\nAlert: ${detectedPhrase}\nLocation: ${location.lat}, ${location.lng}\nTimestamp: ${alertData.timestamp}`
+            );
+        } catch (notifErr) {
+            console.warn('Notification service dispatch skipped/failed non-fatally:', notifErr.message);
+        }
 
         res.status(201).json({
             success: true,
-            message: 'SOS alert triggered successfully',
-            data: sosEvent
+            message: 'SOS / Drowsiness alert triggered successfully',
+            data: alertData
         });
 
     } catch (err) {
@@ -76,11 +114,15 @@ export const triggerSOS = async (req, res) => {
 
 export const getSOSHistory = async (req, res) => {
     try {
-        const history = await SOS.find().populate({
-            path: 'driver',
-            populate: { path: 'user' }
-        }).sort({ timestamp: -1 });
-        res.json(history);
+        const isDbConnected = mongoose.connection.readyState === 1 && process.env.DEMO_MODE !== 'true';
+        if (isDbConnected) {
+            const history = await SOS.find().populate({
+                path: 'driver',
+                populate: { path: 'user' }
+            }).sort({ timestamp: -1 });
+            return res.json(history);
+        }
+        res.json(demoSOSHistory);
     } catch (err) {
         res.status(500).json({ message: 'Error fetching SOS history' });
     }

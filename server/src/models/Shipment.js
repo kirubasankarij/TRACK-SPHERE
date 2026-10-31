@@ -13,9 +13,14 @@ const shipmentSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['pending', 'in-transit', 'delivered', 'exception'],
-        default: 'pending'
+        default: 'Order Created'
     },
+    priority: { type: String, default: 'Normal' },
+    packageDetails: { type: String, default: 'Standard Parcel' },
+    pickupLocation: { type: String },
+    deliveryLocation: { type: String },
+    lastLocation: { type: String },
+    assignedTime: { type: Date },
     carrier: String,
     estimatedDelivery: Date,
     assignedDriver: { type: mongoose.Schema.Types.ObjectId, ref: 'Driver' },
@@ -49,6 +54,28 @@ const shipmentSchema = new mongoose.Schema({
         submittedAt: Date,
     },
     lastDelayNotifiedAt: { type: Date, default: null }, // prevents duplicate delay alerts
+    vehicleType: { type: String, default: 'Heavy Truck' },
+    greenLogistics: {
+        greenScore: { type: Number, default: 85 },
+        co2EmissionsKg: { type: Number, default: 4.5 },
+        co2SavedKg: { type: Number, default: 1.2 },
+        ecoGrade: { type: String, default: 'A' },
+        treesEquivalent: { type: Number, default: 0.2 },
+        isEcoRoute: { type: Boolean, default: true }
+    },
+    etaConfidence: {
+        marginMinutes: { type: Number, default: 12 },
+        confidencePercent: { type: Number, default: 88 },
+        rangeLabel: { type: String }
+    },
+    rerouteSuggestion: {
+        suggested: { type: Boolean, default: false },
+        alternateRoute: { type: String },
+        timeSavedMins: { type: Number, default: 0 },
+        fuelSavedLiters: { type: Number, default: 0 },
+        costSavedInr: { type: Number, default: 0 },
+        co2SavedKg: { type: Number, default: 0 }
+    }
 }, { timestamps: true });
 
 export default mongoose.model('Shipment', shipmentSchema);

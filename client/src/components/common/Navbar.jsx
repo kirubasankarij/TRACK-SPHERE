@@ -24,6 +24,7 @@ const Navbar = () => {
             <div className="hidden md:flex items-center space-x-8 font-bold text-gray-400">
                 <Link to="/" className="hover:text-primary transition-colors">Home</Link>
                 <Link to="/track" className="hover:text-primary transition-colors">Tracking</Link>
+                <Link to="/portal/customer" className="hover:text-primary transition-colors">Customer Portal</Link>
                 {user?.role === 'admin' && (
                     <Link to="/admin" className="hover:text-primary transition-colors">Admin</Link>
                 )}
@@ -74,6 +75,7 @@ const Navbar = () => {
                 <div className="absolute top-full left-0 right-0 mt-2 mx-2 p-6 glass-card md:hidden flex flex-col space-y-4 font-bold text-gray-400 animate-in fade-in slide-in-from-top-4 duration-300 bg-ai-navbar/90 backdrop-blur-2xl border-white/10">
                     <Link to="/" className="hover:text-primary py-2 border-b border-white/5" onClick={() => setIsMenuOpen(false)}>Home</Link>
                     <Link to="/track" className="hover:text-primary py-2 border-b border-white/5" onClick={() => setIsMenuOpen(false)}>Tracking</Link>
+                    <Link to="/portal/customer" className="hover:text-primary py-2 border-b border-white/5" onClick={() => setIsMenuOpen(false)}>Customer Portal</Link>
                     {user?.role === 'admin' && (
                         <Link to="/admin" className="hover:text-primary py-2 border-b border-white/5" onClick={() => setIsMenuOpen(false)}>Admin</Link>
                     )}

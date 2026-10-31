@@ -303,7 +303,7 @@ export const MockShipment = class extends MockModel {
             carrier: 'SphereForce West',
             createdAt: new Date() 
         }
-    ];    ];
+    ];
 
     static async find(query) { return this.shipments; }
     static async findOne(query) {
